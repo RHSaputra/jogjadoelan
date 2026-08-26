@@ -2,7 +2,7 @@
 
 Platform e-commerce full-stack untuk usaha kuliner/oleh-oleh khas Yogyakarta: katalog produk, pesan custom (cake/hampers), pembayaran multi-channel, hingga penanganan komplain — dilengkapi dashboard admin yang komprehensif dan notifikasi realtime via Email & WhatsApp.
 
-## ✨ Fitur
+## Fitur
 
 ### Pelanggan
 - **Katalog & Pencarian** — produk dengan kategori, promo, ulasan, dan rating
@@ -25,7 +25,7 @@ Platform e-commerce full-stack untuk usaha kuliner/oleh-oleh khas Yogyakarta: ka
 - **Laporan & Audit Log** — rekap penjualan serta jejak aktivitas admin
 - **Pengaturan Toko** — landing page, footer, FAQ, jam operasional, rekening bank, ekspedisi
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer | Teknologi |
 |---|---|
@@ -41,13 +41,13 @@ Platform e-commerce full-stack untuk usaha kuliner/oleh-oleh khas Yogyakarta: ka
 | Validasi | Zod |
 | Data Fetching | TanStack Query |
 
-## 📋 Prasyarat
+## Prasyarat
 
 - **Node.js ≥ 20**
 - **pnpm** (`npm i -g pnpm`)
 - **MySQL/MariaDB** berjalan lokal (dikembangkan dengan [Laragon](https://laragon.org))
 
-## 🚀 Instalasi
+## Instalasi
 
 1. **Clone & install dependency**
 
@@ -93,7 +93,7 @@ Platform e-commerce full-stack untuk usaha kuliner/oleh-oleh khas Yogyakarta: ka
    pnpm start      # jalankan hasil build
    ```
 
-## 🧪 Pengujian & Utilitas
+## engujian & Utilitas
 
 ```bash
 pnpm test           # uji sistem notifikasi
@@ -104,7 +104,7 @@ pnpm lint           # ESLint
 
 Skrip maintenance lainnya tersedia di folder `scripts/` (migrasi nomor telepon, cleanup order/chat, audit broadcast, dsb).
 
-## 📁 Struktur Proyek (ringkas)
+## Struktur Proyek (ringkas)
 
 ```
 ├── app/
@@ -119,7 +119,7 @@ Skrip maintenance lainnya tersedia di folder `scripts/` (migrasi nomor telepon, 
 └── middleware.ts     # Proteksi route admin, rate limit, cache policy
 ```
 
-## 🔐 Keamanan
+## Keamanan
 
 - Rate limiting berjenjang per-IP pada seluruh endpoint `/api/*`
 - Proteksi route `/admin/*` berbasis role (`ADMIN` / `SUPER_ADMIN`) di middleware
