@@ -1,0 +1,1035 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model adminuser {
+  id               String           @id @default(cuid())
+  username         String           @unique(map: "AdminUser_username_key")
+  nama             String
+  email            String?          @unique(map: "AdminUser_email_key")
+  noHp             String?
+  foto             String?
+  passwordHash     String
+  role             adminuser_role   @default(ADMIN)
+  aktif            Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+  lastLoginAt      DateTime?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  auditlog         auditlog[]
+  customprogress   customprogress[]
+  
+  ordertimeline    ordertimeline[]
+  payment          payment[]
+}
+
+model alamat {
+  id             String  @id @default(cuid())
+  userId         String
+  label          String
+  penerima       String
+  noHp           String
+  provinsi       String
+  kota           String
+  kecamatan      String
+  kodePos        String
+  detail         String  @db.Text
+  isUtama        Boolean @default(false)
+  isToko         Boolean @default(false)
+  isPengembalian Boolean @default(false)
+  user           user    @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Alamat_userId_fkey")
+
+  @@index([userId], map: "Alamat_userId_idx")
+}
+
+model auditlog {
+  id        String          @id @default(cuid())
+  adminId   String?
+  adminName String?
+  action    auditlog_action
+  entity    String
+  entityId  String?
+  meta      Json
+  ip        String?
+  userAgent String?         @db.Text
+  createdAt DateTime        @default(now())
+  adminuser adminuser?      @relation(fields: [adminId], references: [id], onDelete: Cascade, map: "AuditLog_adminId_fkey")
+
+  @@index([action, createdAt], map: "AuditLog_action_createdAt_idx")
+  @@index([adminId, createdAt], map: "AuditLog_adminId_createdAt_idx")
+  @@index([entity, entityId], map: "AuditLog_entity_entityId_idx")
+}
+
+model bank {
+  id       String  @id @default(cuid())
+  keyUnik  String  @unique(map: "Bank_keyUnik_key")
+  nama     String
+  noRek    String
+  anNama   String
+  color    String  @default("#0E2148")
+  logoPath String?
+  urutan   Int     @default(0)
+  aktif    Boolean @default(true)
+}
+
+model broadcast {
+  id          String           @id @default(cuid())
+  judul       String
+  isi         String           @db.Text
+  tipe        broadcast_tipe   @default(INFO)
+  target      broadcast_target @default(ALL)
+  scheduledAt DateTime?
+  sentAt      DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+}
+
+model cabang {
+  id       String  @id @default(cuid())
+  nama     String
+  alamat   String  @db.Text
+  kota     String
+  kodePos  String?
+  noHp     String?
+  lat      Float?
+  lng      Float?
+  mapsUrl  String?
+  jamBuka  String?
+  jamTutup String?
+  hariBuka String?
+  isUtama  Boolean @default(false)
+  urutan   Int     @default(0)
+}
+
+model cartitem {
+  id        String   @id @default(cuid())
+  userId    String
+  produkId  String
+  qty       Int
+  ukuran    String?
+  warna     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  produk    produk   @relation(fields: [produkId], references: [id], onDelete: Cascade, map: "CartItem_produkId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "CartItem_userId_fkey")
+
+  @@unique([userId, produkId, ukuran, warna], map: "CartItem_userId_produkId_ukuran_warna_key")
+  @@index([produkId], map: "CartItem_produkId_fkey")
+  @@index([userId], map: "CartItem_userId_idx")
+}
+
+model chatsupportmessage {
+  id         String                      @id @default(cuid())
+  userId     String
+  fromRole   chatsupportmessage_fromRole
+  pesan      String?                     @db.Text
+  filesPaths Json
+  context    Json?
+  status     chatsupportmessage_status   @default(SENT)
+  createdAt  DateTime                    @default(now())
+  deletedAt  DateTime?
+  user       user                        @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ChatSupportMessage_userId_fkey")
+
+  @@index([userId, createdAt], map: "ChatSupportMessage_userId_createdAt_idx")
+}
+
+model customorder {
+  id                 String                   @id @default(cuid())
+  userId             String
+  status             customorder_status       @default(SUBMITTED)
+  jenis              String
+  ukuran             String
+  finishing          String?
+  strap              String?
+  motifBusa          String?
+  bahan              String?
+  aksesoris          String?
+  warnaList          Json
+  warnaCatatan       String?                  @db.Text
+  notes              String?                  @db.Text
+  referensiPaths     Json
+  estimasi           Json?
+  estimasiTanggal    Json?
+  hasilProduksi      Json?
+  quotedByAdminAt    DateTime?
+  quotedCatatan      String?                  @db.Text
+  customerApprovedAt DateTime?
+  paymentType        customorder_paymentType?
+  hargaFinal         Int?
+  dpAmount           Int?
+  sisaAmount         Int?
+  isLate             Boolean                  @default(false)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @default(now()) @updatedAt
+  user               user                     @relation(fields: [userId], references: [id], map: "CustomOrder_userId_fkey")
+  customprogress     customprogress[]
+  komplain           komplain[]
+  payment            payment[]
+}
+
+model customprogress {
+  id            String      @id @default(cuid())
+  customOrderId String
+  tahap         String
+  deskripsi     String?     @db.Text
+  fotoPath      String?     @db.Text
+  createdAt     DateTime    @default(now())
+  byAdminId     String?
+  adminuser     adminuser?  @relation(fields: [byAdminId], references: [id], map: "CustomProgress_byAdminId_fkey")
+  customorder   customorder @relation(fields: [customOrderId], references: [id], onDelete: Cascade, map: "CustomProgress_customOrderId_fkey")
+  
+  @@index([byAdminId], map: "CustomProgress_byAdminId_fkey")
+  @@index([customOrderId], map: "CustomProgress_customOrderId_idx")
+}
+
+model ekspedisi {
+  id               String  @id @default(cuid())
+  keyUnik          String  @unique(map: "Ekspedisi_keyUnik_key")
+  nama             String
+  layanan          String?
+  estimasi         String?
+  harga            Int     @default(0)
+  trackUrlTemplate String? @db.Text
+  isApi            Boolean @default(false)
+  forReturn        Boolean @default(false)
+  aktif            Boolean @default(true)
+  urutan           Int     @default(0)
+}
+
+model emaillog {
+  id             String          @id @default(cuid())
+  recipient      String
+  subject        String
+  type           String
+  status         emaillog_status
+  error          String?         @db.Text
+  messageId      String?
+  relatedOrderId String?
+  relatedEntity  String?
+  createdAt      DateTime        @default(now())
+
+  @@index([recipient], map: "EmailLog_recipient_idx")
+  @@index([relatedOrderId], map: "EmailLog_relatedOrderId_idx")
+  @@index([status, createdAt], map: "EmailLog_status_createdAt_idx")
+  @@index([type, createdAt], map: "EmailLog_type_createdAt_idx")
+}
+
+model faq {
+  id         String   @id @default(cuid())
+  kategori   String?
+  pertanyaan String
+  jawaban    String   @db.Text
+  urutan     Int      @default(0)
+  aktif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@index([kategori], map: "Faq_kategori_idx")
+}
+
+model instruksipembayaran {
+  id        Int                     @id @default(autoincrement())
+  key       instruksipembayaran_key @unique(map: "InstruksiPembayaran_key_key")
+  isi       String                  @db.Text
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model komplain {
+  id            String            @id @default(cuid())
+  userId        String
+  orderId       String?
+  customOrderId String?
+  jenis         komplain_jenis
+  jenisLabel    String
+  tindakan      komplain_tindakan
+  status        komplain_status   @default(BARU)
+  deskripsi     String            @db.Text
+  filesPaths    Json
+  penolakan     Json?
+  refundForm    Json?
+  refundResult  Json?
+  tukarForm     Json?
+  tukarResult   Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @default(now()) @updatedAt
+  customorder   customorder?      @relation(fields: [customOrderId], references: [id], onDelete: Cascade, map: "Komplain_customOrderId_fkey")
+  order         order?            @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Komplain_orderId_fkey")
+  user          user              @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Komplain_userId_fkey")
+  
+  refund        refund?
+  tukar         tukar?
+
+  @@index([customOrderId], map: "Komplain_customOrderId_fkey")
+  @@index([orderId], map: "Komplain_orderId_idx")
+  @@index([status], map: "Komplain_status_idx")
+  @@index([userId], map: "Komplain_userId_idx")
+  @@index([userId, status], map: "Komplain_userId_status_idx")
+  @@index([createdAt], map: "Komplain_createdAt_idx")
+}
+
+
+
+model liburitem {
+  id             String   @id @default(cuid())
+  tanggalMulai   DateTime @db.Date
+  tanggalSelesai DateTime @db.Date
+  alasan         String
+
+  @@index([tanggalMulai, tanggalSelesai], map: "LiburItem_tanggalMulai_tanggalSelesai_idx")
+}
+
+model notifikasi {
+  id         String          @id @default(cuid())
+  userId     String
+  type       notifikasi_type
+  title      String
+  body       String          @db.Text
+  link       String?
+  isRead     Boolean         @default(false)
+  orderId    String?
+  komplainId String?
+  refundId   String?
+  tukarId    String?
+  createdAt  DateTime        @default(now())
+  user       user            @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Notifikasi_userId_fkey")
+
+  @@index([createdAt], map: "Notifikasi_createdAt_idx")
+  @@index([userId, isRead], map: "Notifikasi_userId_isRead_idx")
+}
+
+model order {
+  id                   String            @id @default(cuid())
+  userId               String
+  jenisOrder           order_jenisOrder  @default(REGULER)
+  status               order_status      @default(MENUNGGU_PEMBAYARAN)
+  pengiriman           order_pengiriman
+  metodeBayar          order_metodeBayar
+  bankKey              order_bankKey?
+  subtotal             Int
+  ongkir               Int               @default(0)
+  biayaPacking         Int               @default(0)
+  diskon               Int               @default(0)
+  total                Int
+  voucherCode          String?
+  voucherInfo          Json?
+  alamat               Json
+  ekspedisi            Json?
+  estimasiTiba         Json?
+  estimasiProsesHari   Int?
+  resi                 String?
+  catatanAdmin         String?           @db.Text
+  catatanKurir         String?           @db.Text
+  transferInfo         Json?
+  customMeta           Json?
+  buktiBayar           String?
+  buktiBayarAt         DateTime?
+  deliveredAt          DateTime?
+  konfirmasiDiterimaAt DateTime?
+  expiredAt            DateTime
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @default(now()) @updatedAt
+  komplain             komplain[]
+  user                 user              @relation(fields: [userId], references: [id], map: "Order_userId_fkey")
+  orderitem            orderitem[]
+  ordertimeline        ordertimeline[]
+  payment              payment[]
+  refund               refund[]
+  tukar                tukar[]
+  ulasan               ulasan[]
+
+  @@index([createdAt], map: "Order_createdAt_idx")
+  @@index([status], map: "Order_status_idx")
+  @@index([userId], map: "Order_userId_idx")
+  @@index([expiredAt], map: "Order_expiredAt_idx")
+  @@index([userId, status], map: "Order_userId_status_idx")
+  @@index([status, konfirmasiDiterimaAt], map: "Order_status_konfirmasi_idx")
+}
+
+model orderitem {
+  id            String  @id @default(cuid())
+  orderId       String
+  produkId      String?
+  snapNama      String
+  snapHarga     Int
+  snapGambar    String?
+  snapJenis     String?
+  snapDeskripsi String? @db.Text
+  ukuran        String?
+  warna         String?
+  qty           Int
+  subtotal      Int
+  isCustom      Boolean @default(false)
+  voucherInfo   Json?
+  order         order   @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "OrderItem_orderId_fkey")
+  ulasan        ulasan?
+
+  @@index([orderId], map: "OrderItem_orderId_idx")
+  @@index([produkId], map: "OrderItem_produkId_idx")
+}
+
+model ordertimeline {
+  id        String             @id @default(cuid())
+  orderId   String
+  step      ordertimeline_step
+  label     String
+  sub       String?            @db.Text
+  fotoPath  String?
+  at        DateTime           @default(now())
+  byAdminId String?
+  adminuser adminuser?         @relation(fields: [byAdminId], references: [id], map: "OrderTimeline_byAdminId_fkey")
+  order     order              @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "OrderTimeline_orderId_fkey")
+
+  @@index([byAdminId], map: "OrderTimeline_byAdminId_fkey")
+  @@index([orderId], map: "OrderTimeline_orderId_idx")
+}
+
+model payment {
+  id            String           @id @default(cuid())
+  orderId       String?
+  customOrderId String?
+  type          payment_type
+  metode        payment_metode
+  bankKey       payment_bankKey?
+  nominal       Int
+  buktiPath     String
+  pengirimNama  String
+  pengirimBank  String?
+  pengirimNoRek String?
+  jamTransfer   DateTime
+  status        payment_status   @default(PENDING)
+  verifiedAt    DateTime?
+  verifiedById  String?
+  alasanTolak   String?          @db.Text
+  createdAt     DateTime         @default(now())
+  customorder   customorder?     @relation(fields: [customOrderId], references: [id], onDelete: Cascade, map: "Payment_customOrderId_fkey")
+  order         order?           @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Payment_orderId_fkey")
+  adminuser     adminuser?       @relation(fields: [verifiedById], references: [id], map: "Payment_verifiedById_fkey")
+
+  @@index([customOrderId], map: "Payment_customOrderId_idx")
+  @@index([orderId], map: "Payment_orderId_idx")
+  @@index([status], map: "Payment_status_idx")
+  @@index([verifiedById], map: "Payment_verifiedById_fkey")
+  @@index([orderId, status], map: "Payment_orderId_status_idx")
+}
+
+model produk {
+  id               String         @id @default(cuid())
+  sku              String?        @unique(map: "Produk_sku_key")
+  slug             String?        @unique(map: "Produk_slug_key")
+  nama             String
+  jenis            String
+  jenisLabel       String
+  kategori         String?
+  kondisi          String         @default("Baru")
+  spesifikasi      String         @db.Text
+  deskripsiSingkat String         @db.Text
+  deskripsi        Json
+  ukuranList       Json
+  harga            Int
+  hargaCoret       Int            @default(0)
+  diskonPersen     Int            @default(0)
+  promoLabel       String?
+  stok             Int            @default(0)
+  terjual          Int            @default(0)
+  rating           Float          @default(0)
+  jumlahUlasan     Int            @default(0)
+  isPromo          Boolean        @default(false)
+  isPreOrder       Boolean        @default(false)
+  isCustomMaster   Boolean        @default(false)
+  isRekomendasi    Boolean        @default(false)
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @default(now()) @updatedAt
+  gambarUtama      String?
+  cartitem         cartitem[]
+  produkimage      produkimage[]
+  produkvarian     produkvarian[]
+  tukar            tukar[]
+  ulasan           ulasan[]
+  wishlistitem     wishlistitem[]
+
+  @@index([isActive], map: "Produk_isActive_idx")
+  @@index([isPromo], map: "Produk_isPromo_idx")
+  @@index([jenis], map: "Produk_jenis_idx")
+  // CRITICAL FIX: Tambah index yang hilang untuk query-query umum
+  @@index([isRekomendasi], map: "Produk_isRekomendasi_idx")
+  @@index([terjual], map: "Produk_terjual_idx")
+  @@index([createdAt], map: "Produk_createdAt_idx")
+  @@index([isActive, jenis], map: "Produk_isActive_jenis_idx")
+  @@index([isActive, isRekomendasi], map: "Produk_isActive_isRekomendasi_idx")
+  @@index([isActive, isPromo], map: "Produk_isActive_isPromo_idx")
+  @@index([stok], map: "Produk_stok_idx")
+}
+
+model produkimage {
+  id          String  @id @default(cuid())
+  produkId    String
+  path        String
+  urutan      Int     @default(0)
+  isThumbnail Boolean @default(false)
+  produk      produk  @relation(fields: [produkId], references: [id], onDelete: Cascade, map: "ProdukImage_produkId_fkey")
+
+  @@index([produkId], map: "ProdukImage_produkId_idx")
+}
+
+model produkvarian {
+  id       String  @id @default(cuid())
+  produkId String
+  nama     String
+  warna    String?
+  ukuran   String?
+  harga    Int?
+  stok     Int?
+  produk   produk  @relation(fields: [produkId], references: [id], onDelete: Cascade, map: "ProdukVarian_produkId_fkey")
+
+  @@index([produkId], map: "ProdukVarian_produkId_idx")
+}
+
+model qrisconfig {
+  id           Int      @id @default(1)
+  merchantName String   @default("Jogjadoelan QRIS")
+  qrPath       String?
+  aktif        Boolean  @default(true)
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model refund {
+  id                     String        @id @default(cuid())
+  komplainId             String        @unique(map: "Refund_komplainId_key")
+  orderId                String
+  userId                 String
+  status                 refund_status @default(MENUNGGU_REVIEW_ADMIN)
+  namaBank               String
+  atasNama               String
+  noRek                  String
+  kurir                  String        @default("Anteraja")
+  noResi                 String?
+  buktiKirimPath         String?
+  buktiKirimAt           DateTime?
+  nominalRefund          Int           @default(0)
+  catatanAdmin           String?       @db.Text
+  rejectReason           String?       @db.Text
+  adminApprovedAt        DateTime?
+  adminReceivedAt        DateTime?
+  adminTransferredAt     DateTime?
+  adminTransferProofPath String?
+  customerConfirmedAt    DateTime?
+  cancelledAt            DateTime?
+  cancelReason           String?       @db.Text
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @default(now()) @updatedAt
+  komplain               komplain      @relation(fields: [komplainId], references: [id], onDelete: Cascade, map: "Refund_komplainId_fkey")
+  order                  order         @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Refund_orderId_fkey")
+  user                   user          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Refund_userId_fkey")
+
+  @@index([orderId], map: "Refund_orderId_fkey")
+  @@index([status], map: "Refund_status_idx")
+  @@index([userId], map: "Refund_userId_idx")
+  @@index([createdAt], map: "Refund_createdAt_idx")
+}
+
+model sitesetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model tukar {
+  id                  String       @id @default(cuid())
+  komplainId          String       @unique(map: "Tukar_komplainId_key")
+  orderId             String
+  userId              String
+  productId           String?
+  status              tukar_status @default(MENUNGGU_REVIEW_ADMIN)
+  productNama         String
+  productGambar       String?
+  ukuranLama          String?
+  ukuranBaru          String
+  warnaLama           String?
+  warnaBaru           String?
+  notes               String?      @db.Text
+  alamatTujuan        Json
+  kurirBalik          String       @default("Anteraja")
+  noResiBalik         String?
+  buktiKirimBalikPath String?
+  buktiKirimBalikAt   DateTime?
+  adminApprovedAt     DateTime?
+  adminReceivedAt     DateTime?
+  adminKirimVarianAt  DateTime?
+  adminNoResiKirim    String?
+  adminKurirKirim     String?
+  adminCatatan        String?      @db.Text
+  rejectReason        String?      @db.Text
+  customerConfirmedAt DateTime?
+  cancelledAt         DateTime?
+  cancelReason        String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @default(now()) @updatedAt
+  komplain            komplain     @relation(fields: [komplainId], references: [id], onDelete: Cascade, map: "Tukar_komplainId_fkey")
+  order               order        @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Tukar_orderId_fkey")
+  produk              produk?      @relation(fields: [productId], references: [id], map: "Tukar_productId_fkey")
+  user                user         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Tukar_userId_fkey")
+
+  @@index([orderId], map: "Tukar_orderId_fkey")
+  @@index([productId], map: "Tukar_productId_fkey")
+  @@index([status], map: "Tukar_status_idx")
+  @@index([userId], map: "Tukar_userId_idx")
+  @@index([createdAt], map: "Tukar_createdAt_idx")
+}
+
+model ulasan {
+  id           String    @id @default(cuid())
+  userId       String
+  produkId     String
+  orderId      String
+  orderItemId  String    @unique(map: "Ulasan_orderItemId_key")
+  rating       Int
+  komentar     String    @db.Text
+  fotoPaths    Json
+  isHidden     Boolean   @default(false)
+  hiddenReason String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  balasan      String?   @db.Text
+  balasanAt    DateTime?
+  order        order     @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Ulasan_orderId_fkey")
+  orderitem    orderitem @relation(fields: [orderItemId], references: [id], onDelete: Cascade, map: "Ulasan_orderItemId_fkey")
+  produk       produk    @relation(fields: [produkId], references: [id], onDelete: Cascade, map: "Ulasan_produkId_fkey")
+  user         user      @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Ulasan_userId_fkey")
+
+  @@index([orderId], map: "Ulasan_orderId_fkey")
+  @@index([produkId, isHidden], map: "Ulasan_produkId_isHidden_idx")
+  @@index([userId], map: "Ulasan_userId_idx")
+}
+
+model user {
+  id                 String               @id @default(cuid())
+  username           String               @unique(map: "User_username_key")
+  email              String               @unique(map: "User_email_key")
+  noHp               String
+  passwordHash       String?
+  avatar             String?
+  provider           user_provider        @default(MANUAL)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  emailVerifiedAt    DateTime?
+  alamat             alamat[]
+  cartitem           cartitem[]
+  chatsupportmessage chatsupportmessage[]
+  customorder        customorder[]
+  komplain           komplain[]
+  notifikasi         notifikasi[]
+  order              order[]
+  refund             refund[]
+  tukar              tukar[]
+  ulasan             ulasan[]
+  voucherusage       voucherusage[]
+  wishlistitem       wishlistitem[]
+
+  @@index([email], map: "User_email_idx")
+  @@index([username], map: "User_username_idx")
+}
+
+model verificationtoken {
+  id        String    @id @default(cuid())
+  userId    String
+  email     String
+  token     String    @unique(map: "VerificationToken_token_key")
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email], map: "VerificationToken_email_idx")
+  @@index([token], map: "VerificationToken_token_idx")
+  @@index([userId], map: "VerificationToken_userId_idx")
+}
+
+model voucher {
+  id           String         @id @default(cuid())
+  kode         String         @unique(map: "Voucher_kode_key")
+  judul        String
+  deskripsi    String?        @db.Text
+  jenis        voucher_jenis
+  nilai        Int
+  minOrder     Int            @default(0)
+  maxDiscount  Int?
+  kuota        Int?
+  terpakai     Int            @default(0)
+  expiredAt    DateTime?
+  aktif        Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  voucherusage voucherusage[]
+
+  @@index([aktif], map: "Voucher_aktif_idx")
+  @@index([kode], map: "Voucher_kode_idx")
+}
+
+model voucherusage {
+  id        String   @id @default(cuid())
+  voucherId String
+  userId    String
+  orderId   String?
+  dipakaiAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "VoucherUsage_userId_fkey")
+  voucher   voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade, map: "VoucherUsage_voucherId_fkey")
+
+  @@unique([voucherId, userId], map: "VoucherUsage_voucherId_userId_key")
+  @@index([userId], map: "VoucherUsage_userId_idx")
+}
+
+model wishlistitem {
+  id        String   @id @default(cuid())
+  userId    String
+  produkId  String
+  createdAt DateTime @default(now())
+  produk    produk   @relation(fields: [produkId], references: [id], onDelete: Cascade, map: "WishlistItem_produkId_fkey")
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "WishlistItem_userId_fkey")
+
+  @@unique([userId, produkId], map: "WishlistItem_userId_produkId_key")
+  @@index([produkId], map: "WishlistItem_produkId_fkey")
+  @@index([userId], map: "WishlistItem_userId_idx")
+}
+
+enum instruksipembayaran_key {
+  READY_STOK
+  CUSTOM_DP
+  PELUNASAN
+}
+
+enum chatsupportmessage_fromRole {
+  USER
+  ADMIN
+  SYSTEM
+}
+
+enum customorder_status {
+  DRAFT
+  SUBMITTED
+  ESTIMATED
+  APPROVED
+  REJECTED
+  MENUNGGU_ESTIMASI
+  MENUNGGU_PERSETUJUAN
+  MENUNGGU_PEMBAYARAN
+  MENUNGGU_VERIFIKASI_DP
+  MENUNGGU_VERIFIKASI_LUNAS
+  MENUNGGU_VERIFIKASI_PELUNASAN
+  DIPROSES
+  SIAP_DILUNASI
+  DIKIRIM
+  SELESAI
+  DIBATALKAN
+}
+
+enum komplainchat_fromRole {
+  USER
+  ADMIN
+  SYSTEM
+}
+
+enum notifikasi_type {
+  ORDER
+  PEMBAYARAN
+  PENGIRIMAN
+  KOMPLAIN
+  REFUND
+  TUKAR
+  ULASAN
+  CUSTOM
+  PROMO
+  INFO
+}
+
+enum order_jenisOrder {
+  REGULER
+  CUSTOM
+}
+
+enum ordertimeline_step {
+  DIBUAT
+  DIBAYAR
+  DIKONFIRMASI
+  DIPROSES
+  DIKIRIM
+  SAMPAI
+  SELESAI
+  DIBATALKAN
+  KADALUARSA
+}
+
+enum auditlog_action {
+  ORDER_CONFIRM_PAYMENT
+  ORDER_REJECT_PAYMENT
+  ORDER_SHIP
+  ORDER_DELIVERED
+  ORDER_CANCEL
+  PRODUK_CREATE
+  PRODUK_UPDATE
+  PRODUK_DELETE
+  PRODUK_STOK_ADJUST
+  KOMPLAIN_ACCEPT
+  KOMPLAIN_REJECT
+  KOMPLAIN_REPLY
+  REFUND_APPROVE
+  REFUND_RECEIVED
+  REFUND_TRANSFER
+  REFUND_REJECT
+  TUKAR_APPROVE
+  TUKAR_RECEIVED
+  TUKAR_SHIP
+  TUKAR_REJECT
+  ULASAN_HIDE
+  ULASAN_UNHIDE
+  ULASAN_DELETE
+  NOTIF_BROADCAST
+  USER_ROLE_CHANGE
+  VALIDASI_PRODUK_KIRIM
+  VALIDASI_PRODUK_SETUJU
+  VALIDASI_PRODUK_REVISI
+  CHAT_MESSAGE_CREATED
+  CHAT_MESSAGE_SENT
+  CHAT_MESSAGE_DELIVERED
+  CHAT_MESSAGE_READ
+  CHAT_REALTIME_FAILED
+  CHAT_RECONNECT_SUCCESS
+}
+
+enum broadcast_tipe {
+  ORDER
+  PEMBAYARAN
+  PENGIRIMAN
+  KOMPLAIN
+  REFUND
+  TUKAR
+  ULASAN
+  CUSTOM
+  PROMO
+  INFO
+}
+
+enum order_status {
+  MENUNGGU_PEMBAYARAN
+  MENUNGGU_KONFIRMASI
+  DIPROSES
+  DIKIRIM
+  SELESAI
+  KADALUARSA
+  DIBATALKAN
+}
+
+enum payment_type {
+  FULL
+  DP
+  PELUNASAN
+}
+
+enum broadcast_target {
+  ALL
+  PEMBELI
+  GUEST
+}
+
+enum emaillog_status {
+  SENT
+  FAILED
+}
+
+enum komplain_jenis {
+  PRODUK_TIDAK_SESUAI
+  PRODUK_CACAT
+  PENGIRIMAN_TERLAMBAT
+  BARANG_TIDAK_SAMPAI
+  ALAMAT_SALAH
+  DOUBLE_CHARGE
+  REFUND_LAMA
+  METODE_PEMBAYARAN_ERROR
+  PENOLAKAN_RETURN
+  ONGKIR_RETURN_MAHAL
+  BARANG_PENGGANTI_LAMA
+  INGIN_UBAH_PESANAN
+  INGIN_BATAL_PESANAN
+  LAINNYA
+}
+
+enum order_pengiriman {
+  AMBIL
+  EKSPEDISI
+}
+
+enum payment_metode {
+  TRANSFER
+  QRIS
+}
+
+enum refund_status {
+  MENUNGGU_REVIEW_ADMIN
+  MENUNGGU_PENGIRIMAN_BALIK
+  DIKIRIM_BALIK
+  DITERIMA_ADMIN
+  TRANSFER_DIKIRIM
+  SELESAI
+  DITOLAK
+  DIBATALKAN
+}
+
+enum voucher_jenis {
+  PERSEN
+  NOMINAL
+}
+
+enum order_metodeBayar {
+  TRANSFER
+  QRIS
+}
+
+enum payment_bankKey {
+  BCA
+  BNI
+  BRI
+  MANDIRI
+}
+
+enum tukar_status {
+  MENUNGGU_REVIEW_ADMIN
+  MENUNGGU_PENGIRIMAN_BALIK
+  DIKIRIM_BALIK
+  DITERIMA_ADMIN
+  VARIAN_BARU_DIKIRIM
+  SELESAI
+  DITOLAK
+  DIBATALKAN
+}
+
+enum chatsupportmessage_status {
+  SENDING
+  SENT
+  DELIVERED
+  READ
+}
+
+enum komplain_tindakan {
+  REFUND
+  TUKAR
+  KOMPLAIN_SAJA
+}
+
+enum order_bankKey {
+  BCA
+  BNI
+  BRI
+  MANDIRI
+}
+
+enum user_provider {
+  MANUAL
+  GOOGLE
+}
+
+enum adminuser_role {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum komplain_status {
+  BARU
+  DITINJAU
+  DISETUJUI
+  MENUNGGU_REVIEW_ADMIN
+  MENUNGGU_BALIKAN
+  DIPROSES
+  BERHASIL
+  DITOLAK
+  DIBATALKAN
+}
+
+enum payment_status {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum customorder_paymentType {
+  DP
+  LUNAS
+}
+
+model whatsappbroadcast {
+  id          String                 @id @default(cuid())
+  channel     String                 @default("wa") // "wa" | "email" | "notif"
+  judul       String
+  pesan       String                 @db.Text
+  gambar      String?                @db.Text
+  target      String                 // "semua" | "aktif" | "custom"
+  status      String                 @default("PENDING") // "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"
+  total       Int                    @default(0)
+  terkirim    Int                    @default(0)
+  gagal       Int                    @default(0)
+  pending     Int                    @default(0)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @default(now()) @updatedAt
+  logs        whatsappbroadcastlog[]
+}
+
+model whatsappbroadcastlog {
+  id          String             @id @default(cuid())
+  broadcastId String
+  nama        String
+  noHp        String?
+  email       String?
+  userId      String?
+  status      String             @default("PENDING") // "PENDING" | "SENT" | "FAILED"
+  error       String?            @db.Text
+  retries     Int                @default(0)
+  sentAt      DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @default(now()) @updatedAt
+  broadcast   whatsappbroadcast  @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  @@index([broadcastId])
+}
+
+model whatsapptransactional {
+  id        String    @id @default(cuid())
+  noHp      String
+  nama      String
+  tipe      String    // "REGISTRASI" | "OTP" | "ORDER_CREATED" | "PAYMENT_RECEIVED" | "ORDER_PROCESSED" | "ORDER_SHIPPED" | "ORDER_COMPLETED"
+  pesan     String    @db.Text
+  status    String    @default("PENDING") // "PENDING" | "SENT" | "FAILED"
+  error     String?   @db.Text
+  retries   Int       @default(0)
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+}
+
+model notificationlog {
+  id                String    @id @default(cuid())
+  channel           String    // "email" | "whatsapp"
+  recipient         String
+  template          String?
+  subject           String?
+  message           String    @db.Text
+  status            String    @default("pending") // "pending" | "sent" | "delivered" | "read" | "failed"
+  provider          String?   // "resend" | "fonnte"
+  provider_response Json?
+  created_at        DateTime  @default(now())
+  sent_at           DateTime?
+  delivered_at      DateTime?
+  failed_at         DateTime?
+  related_order_id  String?
+  related_user_id   String?
+
+  @@index([channel])
+  @@index([recipient])
+  @@index([status])
+  @@index([created_at])
+  @@index([related_order_id])
+  @@index([related_user_id])
+}

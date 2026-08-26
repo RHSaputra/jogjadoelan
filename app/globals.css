@@ -1,0 +1,526 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ============================================================
+   THEME TOKENS — brand colors + fonts + shadows
+   ============================================================ */
+@theme {
+  /* === FONTS (di-inject via next/font di app/layout.tsx) === */
+  --font-bebas: var(--font-bebas), "Bebas Neue", system-ui, sans-serif;
+  --font-sans:  var(--font-sans),  "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+
+  /* === BRAND CORE === */
+  --color-brand-orange:       #FF6B1A;
+  --color-brand-orange-light: #FF8A3D;
+  --color-brand-orange-dark:  #E04E00;
+  --color-brand-navy:         #0E2148;
+  --color-brand-navy-light:   #1A3A6B;
+  --color-brand-navy-dark:    #09152E;
+  --color-brand-coral:        #FF4D6D;
+  --color-brand-amber:        #FFB800;
+  --color-brand-mint:         #00C896;
+  --color-brand-sky:          #2EA8FF;
+  --color-brand-violet:       #9B5BFF;
+
+  --color-brand-black:        #0A0A0A;
+  --color-brand-black-soft:   #1A1A1A;
+  --color-brand-ink:          #2A2A2A;
+
+  /* === VINTAGE MOTO PALETTE === */
+  --color-brand-jet:          #0F0D0A;   /* deep warm black */
+  --color-brand-charcoal:     #1F1B16;   /* warm charcoal */
+  --color-brand-smoke:        #3A332C;   /* smoky brown */
+  --color-brand-rust:         #C9521E;   /* burnt orange / vintage tank */
+  --color-brand-rust-dark:    #9C3F17;   /* deep rust */
+  --color-brand-brass:        #B8884A;   /* vintage gold */
+  --color-brand-brass-light:  #D4A86A;   /* light brass */
+
+  --color-brand-white:        #FFFFFF;
+  --color-brand-snow:         #FAFAFA;
+  --color-brand-mist:         #F4F4F5;
+  --color-brand-line:         #E5DCC4;   /* warm beige line */
+
+  /* === PAPER LAYERS (vintage) === */
+  --color-brand-canvas:       #FBF7EA;   /* lightest paper — utk card */
+  --color-brand-paper:        #EFE7D4;   /* default body — kertas vintage */
+  --color-brand-paper-deep:   #E2D6B8;   /* paper tua — section accent */
+
+  /* legacy compat — komponen lama tetap aman */
+  --color-brand-cream:        #EFE7D4;
+  --color-brand-cream-light:  #FBF7EA;
+  --color-brand-krem:         #EFE7D4;
+
+  /* === COLORED SHADOWS === */
+  --shadow-orange:    0 12px 32px -8px rgba(255, 107, 26, 0.45);
+  --shadow-orange-sm: 0 6px 16px -6px rgba(255, 107, 26, 0.35);
+  --shadow-navy:      0 12px 32px -8px rgba(14, 33, 72, 0.45);
+  --shadow-navy-sm:   0 6px 16px -6px rgba(14, 33, 72, 0.35);
+  --shadow-rust:      0 12px 32px -8px rgba(201, 82, 30, 0.45);
+  --shadow-brass:     0 12px 32px -8px rgba(184, 136, 74, 0.45);
+  --shadow-soft:      0 8px 24px -6px rgba(31, 27, 22, 0.10);
+  --shadow-pop:       0 20px 60px -12px rgba(31, 27, 22, 0.22);
+  --shadow-vintage:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 12px 28px -10px rgba(31, 27, 22, 0.25),
+    0 4px 8px -2px rgba(201, 82, 30, 0.10);
+}
+
+/* ============================================================
+   GLOBAL RESET & DEFAULTS
+   ============================================================ */
+html {
+  overscroll-behavior-y: none;
+  background-color: #EFE7D4;
+  scroll-behavior: smooth;
+}
+
+body {
+  overscroll-behavior-y: none;
+  min-height: 100vh;
+  color: var(--color-brand-jet);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "ss03", "cv01";
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.011em;
+
+  /* === VINTAGE MOTO BACKGROUND === */
+  background-color: #EFE7D4;
+  background-image:
+    /* paper grain texture (SVG noise) */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.09 0 0 0 0 0.05 0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    /* burnt rust wash kiri-atas */
+    radial-gradient(at 4% 6%,   rgba(201, 82, 30, 0.22) 0px, transparent 48%),
+    /* brass gold wash kanan-atas */
+    radial-gradient(at 96% 10%, rgba(184, 136, 74, 0.20) 0px, transparent 48%),
+    /* charcoal wash kiri-bawah (kedalaman macho) */
+    radial-gradient(at 6% 94%,  rgba(31, 27, 22, 0.16) 0px, transparent 50%),
+    /* orange brand wash kanan-bawah */
+    radial-gradient(at 95% 92%, rgba(255, 107, 26, 0.20) 0px, transparent 50%),
+    /* brass center vignette */
+    radial-gradient(at 50% 50%, rgba(184, 136, 74, 0.08) 0px, transparent 65%),
+    /* diagonal hairline pattern (vintage workshop blueprint) */
+    repeating-linear-gradient(45deg, transparent 0px, transparent 90px, rgba(31, 27, 22, 0.018) 90px, rgba(31, 27, 22, 0.018) 91px);
+  background-size: 220px 220px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed;
+}
+
+footer {
+  background-color: var(--color-brand-jet);
+}
+
+/* ============================================================
+   UTILITIES — gradient, glass, blob, font-bebas, vintage
+   ============================================================ */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, #FF6B1A 0%, #FF4D6D 50%, #9B5BFF 100%);
+}
+@utility bg-orange-gradient {
+  background-image: linear-gradient(135deg, #FF8A3D 0%, #FF6B1A 50%, #E04E00 100%);
+}
+@utility bg-sunset-gradient {
+  background-image: linear-gradient(135deg, #FFB800 0%, #FF6B1A 50%, #FF4D6D 100%);
+}
+@utility bg-night-gradient {
+  background-image: linear-gradient(135deg, #1F1B16 0%, #0F0D0A 100%);
+}
+@utility bg-mesh-soft {
+  background-color: #FBF7EA;
+  background-image:
+    radial-gradient(at 12% 18%, rgba(201, 82, 30, 0.10) 0, transparent 45%),
+    radial-gradient(at 88% 12%, rgba(184, 136, 74, 0.10) 0, transparent 45%),
+    radial-gradient(at 50% 88%, rgba(255, 107, 26, 0.08) 0, transparent 45%);
+}
+@utility text-brand-gradient {
+  background: linear-gradient(135deg, #FF6B1A 0%, #C9521E 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility glass {
+  background: rgba(251, 247, 234, 0.65);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+@utility glass-dark {
+  background: rgba(15, 13, 10, 0.55);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(184, 136, 74, 0.18);
+}
+@utility shadow-orange    { box-shadow: var(--shadow-orange); }
+@utility shadow-orange-sm { box-shadow: var(--shadow-orange-sm); }
+@utility shadow-rust      { box-shadow: var(--shadow-rust); }
+@utility shadow-brass     { box-shadow: var(--shadow-brass); }
+@utility shadow-soft      { box-shadow: var(--shadow-soft); }
+@utility shadow-pop       { box-shadow: var(--shadow-pop); }
+@utility shadow-vintage   { box-shadow: var(--shadow-vintage); }
+@utility font-bebas {
+  font-family: var(--font-bebas);
+  letter-spacing: 0.04em;
+}
+
+/* === VINTAGE LAYER UTILITIES === */
+@utility bg-canvas       { background-color: #FBF7EA; }
+@utility bg-paper        { background-color: #EFE7D4; }
+@utility bg-paper-deep   { background-color: #E2D6B8; }
+@utility bg-jet          { background-color: #0F0D0A; }
+@utility bg-charcoal     { background-color: #1F1B16; }
+@utility bg-smoke        { background-color: #3A332C; }
+@utility bg-rust         { background-color: #C9521E; }
+@utility bg-rust-dark    { background-color: #9C3F17; }
+@utility bg-navy         { background-color: #0E2148; }
+@utility bg-navy-light   { background-color: #1A3A6B; }
+@utility bg-navy-dark    { background-color: #09152E; }
+@utility bg-brass        { background-color: #B8884A; }
+@utility bg-brass-light  { background-color: #D4A86A; }
+
+@utility text-rust       { color: #C9521E; }
+@utility text-brass      { color: #B8884A; }
+@utility text-navy       { color: #0E2148; }
+@utility text-navy-light { color: #1A3A6B; }
+@utility text-jet        { color: #0F0D0A; }
+@utility text-charcoal   { color: #1F1B16; }
+@utility text-paper      { color: #EFE7D4; }
+@utility text-canvas     { color: #FBF7EA; }
+
+@utility border-brass    { border-color: #B8884A; }
+@utility border-rust     { border-color: #C9521E; }
+@utility border-navy     { border-color: #0E2148; }
+@utility border-paper    { border-color: #E5DCC4; }
+@utility border-jet      { border-color: #0F0D0A; }
+
+/* === VINTAGE GRADIENTS === */
+@utility bg-rust-gradient {
+  background-image: linear-gradient(135deg, #FF8A3D 0%, #C9521E 55%, #9C3F17 100%);
+}
+@utility bg-vintage-gradient {
+  background-image: linear-gradient(135deg, #FBF7EA 0%, #E2D6B8 60%, #B8884A 100%);
+}
+@utility bg-charcoal-gradient {
+  background-image: linear-gradient(135deg, #3A332C 0%, #1F1B16 50%, #0F0D0A 100%);
+}
+@utility bg-tank-gradient {
+  /* gradient kayak tangki helm vintage: rust → black → orange */
+  background-image: linear-gradient(135deg, #C9521E 0%, #1F1B16 50%, #FF6B1A 100%);
+}
+@utility bg-brass-gradient {
+  background-image: linear-gradient(135deg, #D4A86A 0%, #B8884A 60%, #8C6736 100%);
+}
+
+/* === VINTAGE TEXTURES (overlay biar tidak polos) === */
+@utility bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='gg'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.12 0 0 0 0 0.09 0 0 0 0 0.05 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23gg)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+@utility bg-grain-dark {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='gd'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.85 0 0 0 0 0.6 0 0 0 0.10 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23gd)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+@utility bg-halftone {
+  background-image: radial-gradient(rgba(31, 27, 22, 0.18) 1px, transparent 1.4px);
+  background-size: 12px 12px;
+}
+@utility bg-stripes-vintage {
+  background-image: repeating-linear-gradient(45deg, transparent 0px, transparent 10px, rgba(31, 27, 22, 0.04) 10px, rgba(31, 27, 22, 0.04) 11px);
+}
+@utility bg-blueprint {
+  background-image:
+    linear-gradient(rgba(31, 27, 22, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(31, 27, 22, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ============================================================
+   ANIMATIONS — float, blob, shimmer, pulse-glow
+   ============================================================ */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-14px); }
+}
+@keyframes blob-morph {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50%      { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 26, 0.45); }
+  50%      { box-shadow: 0 0 0 18px rgba(255, 107, 26, 0); }
+}
+@utility animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+@utility animate-blob       { animation: blob-morph 14s ease-in-out infinite; }
+@utility animate-shimmer    {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+@utility animate-pulse-glow { animation: pulse-glow 2.4s ease-out infinite; }
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   SHADCN THEME INLINE BRIDGE
+   ============================================================ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: oklch(0.945 0.022 75);
+  --foreground: oklch(0.135 0.012 50);
+  --card: oklch(0.985 0.008 80);
+  --card-foreground: oklch(0.135 0.012 50);
+  --popover: oklch(0.985 0.008 80);
+  --popover-foreground: oklch(0.135 0.012 50);
+  --primary: oklch(0.205 0.012 40);
+  --primary-foreground: oklch(0.97 0.01 80);
+  --secondary: oklch(0.94 0.015 70);
+  --secondary-foreground: oklch(0.205 0.012 40);
+  --muted: oklch(0.94 0.015 70);
+  --muted-foreground: oklch(0.50 0.025 50);
+  --accent: oklch(0.94 0.015 70);
+  --accent-foreground: oklch(0.205 0.012 40);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.88 0.025 70);
+  --input: oklch(0.92 0.018 70);
+  --ring: oklch(0.65 0.16 45);
+  --chart-1: oklch(0.7 0.18 45);
+  --chart-2: oklch(0.65 0.13 70);
+  --chart-3: oklch(0.5 0.04 50);
+  --chart-4: oklch(0.371 0.02 40);
+  --chart-5: oklch(0.269 0.015 35);
+  --radius: 0.875rem;
+  --sidebar: oklch(0.965 0.012 75);
+  --sidebar-foreground: oklch(0.135 0.012 50);
+  --sidebar-primary: oklch(0.205 0.012 40);
+  --sidebar-primary-foreground: oklch(0.97 0.01 80);
+  --sidebar-accent: oklch(0.94 0.015 70);
+  --sidebar-accent-foreground: oklch(0.205 0.012 40);
+  --sidebar-border: oklch(0.88 0.025 70);
+  --sidebar-ring: oklch(0.65 0.16 45);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* ============================================================
+   BASE LAYER — typography & primitives
+   ============================================================ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* === TYPOGRAPHY HIERARCHY (Plus Jakarta Sans) === */
+  body  { font-weight: 500; letter-spacing: -0.011em; }
+  h1    { font-weight: 800; letter-spacing: -0.035em; line-height: 1.04; font-feature-settings: "ss01"; }
+  h2    { font-weight: 800; letter-spacing: -0.028em; line-height: 1.12; }
+  h3    { font-weight: 700; letter-spacing: -0.022em; line-height: 1.22; }
+  h4    { font-weight: 700; letter-spacing: -0.018em; line-height: 1.30; }
+  h5, h6 { font-weight: 700; letter-spacing: -0.014em; line-height: 1.35; }
+  p, li, span, label, a { font-weight: 500; }
+  small { font-weight: 500; }
+  strong, b { font-weight: 700; }
+  button, input, select, textarea { font-weight: 600; letter-spacing: -0.005em; }
+  th { font-weight: 700; letter-spacing: -0.01em; }
+  code, pre, kbd {
+    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", monospace;
+    font-weight: 500;
+  }
+
+  /* === SELECTION === */
+  ::selection {
+    background-color: rgba(201, 82, 30, 0.28);
+    color: #0F0D0A;
+  }
+
+   /* === SCROLLBAR — HIDDEN (scroll tetap normal, bar tidak terlihat) === */
+  * {
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE/Edge legacy */
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;                /* Chrome/Safari/Edge baru */
+  }
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  /* Kelas legacy tetap dipertahankan (no-op tapi aman dipakai) */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }}
+
+/* ===== GLOBAL SCROLLBAR ===== */
+
+* {
+  scrollbar-width: auto;
+  scrollbar-color: #9ca3af transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.04);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+  background-clip: content-box;
+}
+
+/* ============================================================
+   ADMIN ACTION NORMALIZATION
+   Scope khusus admin supaya tombol manual lintas halaman tetap
+   presisi, tap-friendly, dan tidak mudah overflow di mobile.
+   ============================================================ */
+@layer components {
+  .admin-shell :where(button, a) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .admin-shell :where(button, a):focus-visible {
+    outline: 2px solid rgba(255, 107, 26, 0.7);
+    outline-offset: 2px;
+  }
+
+  .admin-shell :where(button, a):disabled,
+  .admin-shell :where(button, a)[aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  .admin-shell :where(button, a):is([class*="px-"]):is([class*="py-"]):not(aside *) {
+    box-sizing: border-box;
+    max-width: 100%;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .admin-shell :where(button, a):is([class*="px-"]):is([class*="py-"]):not([class*="h-"]):not([class*="aspect-"]) {
+    min-height: 2.25rem;
+  }
+
+  .admin-shell :where(button, a) > svg,
+  .admin-shell :where(button, a) svg[class*="h-"] {
+    flex-shrink: 0;
+  }
+
+  .admin-shell .admin-page-header-actions > :where(a, button) {
+    min-width: max-content;
+  }
+
+  @media (max-width: 640px) {
+    .admin-shell .admin-page-header-actions > :where(a, button) {
+      flex: 1 1 100%;
+      min-width: 0;
+      width: 100%;
+    }
+
+    .admin-shell .admin-form-actions__inner > :where(a, button),
+    .admin-shell .admin-form-actions__inner > div > :where(a, button) {
+      width: 100%;
+    }
+
+    .admin-shell :where(button, a):is([class*="px-"]):is([class*="py-"]):not([class*="h-"]):not([class*="aspect-"]) {
+      min-height: 2.5rem;
+    }
+  }
+}

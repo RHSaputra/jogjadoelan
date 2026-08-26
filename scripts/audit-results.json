@@ -1,0 +1,92 @@
+[
+  {
+    "file": "C:\\jogjadoelan\\app\\(customer)\\akun\\alamat\\page.tsx",
+    "location": "Baris 13",
+    "oldText": "LogOut,",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "Logout,"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\(customer)\\akun\\alamat\\page.tsx",
+    "location": "Baris 288",
+    "oldText": "<LogOut className=\"h-4 w-4\" /> Keluar",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "<Logout className=\"h-4 w-4\" /> Keluar"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\(customer)\\akun\\page.tsx",
+    "location": "Baris 10",
+    "oldText": "LogOut,",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "Logout,"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\(customer)\\akun\\page.tsx",
+    "location": "Baris 276",
+    "oldText": "<LogOut className=\"h-4 w-4\" /> Keluar",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "<Logout className=\"h-4 w-4\" /> Keluar"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\admin\\logout\\page.tsx",
+    "location": "Baris 5",
+    "oldText": "import { LogOut, AlertTriangle } from \"lucide-react\";",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "import { Logout, AlertTriangle } from \"lucide-react\";"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\admin\\logout\\page.tsx",
+    "location": "Baris 59",
+    "oldText": "<LogOut className=\"h-4 w-4\" /> Ya, Keluar",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "<Logout className=\"h-4 w-4\" /> Ya, Keluar"
+  },
+  {
+    "file": "C:\\jogjadoelan\\app\\admin\\logout\\page.tsx",
+    "location": "Baris 71",
+    "oldText": "<LogOut className=\"h-7 w-7 text-orange-500\" />",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "<Logout className=\"h-7 w-7 text-orange-500\" />"
+  },
+  {
+    "file": "C:\\jogjadoelan\\lib\\admin-constants.ts",
+    "location": "Baris 6",
+    "oldText": "Wrench, UserCircle, Lock, LogOut, TrendingUp, Palette,",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "Wrench, UserCircle, Lock, Logout, TrendingUp, Palette,"
+  },
+  {
+    "file": "C:\\jogjadoelan\\lib\\admin-constants.ts",
+    "location": "Baris 109",
+    "oldText": "{ label: \"Logout\", href: \"/admin/logout\", icon: LogOut },",
+    "category": "Typo / Salah kapitalisasi",
+    "severity": "LOW",
+    "recommendation": "Ganti 'LogOut' dengan 'Logout'",
+    "replacementText": "{ label: \"Logout\", href: \"/admin/logout\", icon: Logout },"
+  },
+  {
+    "file": "C:\\jogjadoelan\\lib\\admin-toko-master-helpers.ts",
+    "location": "Baris 121",
+    "oldText": "{ id: \"journey-story\", iconKey: \"coffee\", title: \"BUILT FOR THE JOURNEY\", subtitle: \"More than a helmet, it's an experience\", description: \"Mulai dari city ride, nongkrong malam, hingga touring santai — setiap perjalanan selalu punya cerita bersama helm vintage favorit.\", badge: \"RIDE · STORY · EXPERIENCE\" },",
+    "category": "Campuran bahasa / Istilah tidak konsisten",
+    "severity": "LOW",
+    "recommendation": "Ganti 'helmet' dengan 'helm (bila dalam konteks teks Indonesia)'",
+    "replacementText": "{ id: \"journey-story\", iconKey: \"coffee\", title: \"BUILT FOR THE JOURNEY\", subtitle: \"More than a helm (bila dalam konteks teks Indonesia), it's an experience\", description: \"Mulai dari city ride, nongkrong malam, hingga touring santai — setiap perjalanan selalu punya cerita bersama helm vintage favorit.\", badge: \"RIDE · STORY · EXPERIENCE\" },"
+  }
+]
