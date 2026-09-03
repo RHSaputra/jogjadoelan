@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
-  AlertCircle, ArrowLeft, Banknote, CheckCircle2, FileImage, MessageCircle, Package,
+  AlertCircle, ArrowLeft, Banknote, Calendar, CheckCircle2, FileImage, MessageCircle, Package,
   ShieldCheck, Truck, User, X, XCircle, ZoomIn,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
@@ -346,19 +346,26 @@ export default function AdminKomplainDetailPage() {
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="rounded-2xl bg-gradient-to-br from-red-500 to-orange-600 p-5 text-white shadow-lg sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/70">{k.jenisLabel}</p>
-        <h2 className="mt-1 text-xl font-black sm:text-2xl">{k.id}</h2>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-white/90">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{k.userName}</span>
-            <span className="font-mono">Order: {k.orderId}</span>
-            <span>{new Date(k.createdAt).toLocaleString("id-ID")}</span>
+      {/* Hero Overview Card */}
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{k.jenisLabel}</span>
+              <span className="text-slate-300">•</span>
+              <span className="font-mono text-xs text-slate-500">Order #{k.orderId}</span>
+            </div>
+            <h2 className="mt-1 text-2xl font-bold text-slate-900 sm:text-3xl font-mono">{k.id}</h2>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+              <span className="flex items-center gap-1.5"><User className="h-4 w-4 text-slate-400" />{k.userName}</span>
+              <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-slate-400" />{new Date(k.createdAt).toLocaleString("id-ID")}</span>
+            </div>
           </div>
-          <Link href={`/admin/chat?userId=${k.userId}`}
-            className="inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5 font-black uppercase text-white hover:bg-white/35 transition">
-            <MessageCircle className="h-3.5 w-3.5" /> Chat Customer
+          <Link
+            href={`/admin/chat?userId=${k.userId}`}
+            className="inline-flex items-center gap-2 rounded-xl bg-orange-50 border border-orange-200 px-4 py-2.5 text-xs font-bold text-[#FF6B1A] hover:bg-[#FF6B1A] hover:text-white transition shadow-xs"
+          >
+            <MessageCircle className="h-4 w-4" /> Chat Pelanggan
           </Link>
         </div>
       </section>
@@ -381,13 +388,13 @@ export default function AdminKomplainDetailPage() {
 
       {/* Action bar */}
       {actions && (
-        <section className="rounded-2xl border-2 border-amber-200 bg-amber-50/50 p-4 shadow-sm">
-          <p className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-700">
-            <ShieldCheck className="h-4 w-4" /> Aksi Tersedia
+        <section className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-xs">
+          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <ShieldCheck className="h-4 w-4 text-[#FF6B1A]" /> Aksi Operasional Tersedia
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {actions.canAccept && (
-              <ActionBtn onClick={() => setConfirmKind("accept")} bg="bg-emerald-600 hover:bg-emerald-700" icon={CheckCircle2}>
+              <ActionBtn onClick={() => setConfirmKind("accept")} variant="success" icon={CheckCircle2}>
                 Setujui Komplain
               </ActionBtn>
             )}
@@ -403,33 +410,33 @@ export default function AdminKomplainDetailPage() {
                       setConfirmKind("approveForm");
                     }
                   }} 
-                  bg="bg-emerald-600 hover:bg-emerald-700" 
+                  variant="success" 
                   icon={CheckCircle2}
                 >
                   Approve Formulir
                 </ActionBtn>
-                <ActionBtn onClick={() => { setRejectKind("form"); setAlasan(""); }} bg="bg-amber-600 hover:bg-amber-700" icon={XCircle}>
+                <ActionBtn onClick={() => { setRejectKind("form"); setAlasan(""); }} variant="danger" icon={XCircle}>
                   Tolak Formulir
                 </ActionBtn>
               </>
             )}
             {actions.canTandaiBalikan && (
-              <ActionBtn onClick={() => setConfirmKind("tandaiBalikan")} bg="bg-indigo-600 hover:bg-indigo-700" icon={Package}>
+              <ActionBtn onClick={() => setConfirmKind("tandaiBalikan")} variant="secondary" icon={Package}>
                 Barang Balikan Diterima
               </ActionBtn>
             )}
             {actions.canCompleteRefund && (
-              <ActionBtn onClick={() => setShowRefund(true)} bg="bg-[#FF6B1A] hover:bg-[#E55A0F]" icon={Banknote}>
+              <ActionBtn onClick={() => setShowRefund(true)} variant="primary" icon={Banknote}>
                 Proses Refund Dana
               </ActionBtn>
             )}
             {actions.canCompleteTukar && (
-              <ActionBtn onClick={() => setShowTukar(true)} bg="bg-[#FF6B1A] hover:bg-[#E55A0F]" icon={Truck}>
+              <ActionBtn onClick={() => setShowTukar(true)} variant="primary" icon={Truck}>
                 Kirim Barang Pengganti
               </ActionBtn>
             )}
             {actions.canReject && (
-              <ActionBtn onClick={() => { setRejectKind("order"); setAlasan(""); }} outline icon={X}>
+              <ActionBtn onClick={() => { setRejectKind("order"); setAlasan(""); }} variant="danger" icon={X}>
                 Tolak Komplain
               </ActionBtn>
             )}
@@ -891,16 +898,21 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-function ActionBtn({ children, onClick, icon: Icon, bg, outline }: {
-  children: React.ReactNode; onClick: () => void; icon: React.ElementType; bg?: string; outline?: boolean;
+function ActionBtn({ children, onClick, icon: Icon, variant = "primary" }: {
+  children: React.ReactNode; onClick: () => void; icon: React.ElementType; variant?: "primary" | "secondary" | "danger" | "success";
 }) {
+  const variantStyles = {
+    primary: "bg-[#FF6B1A] text-white hover:bg-[#E04E00] shadow-xs",
+    secondary: "bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 shadow-xs",
+    success: "bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs",
+    danger: "bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100",
+  };
+
   return (
-    <button onClick={onClick}
-      className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black shadow transition ${
-        outline
-          ? "border-2 border-red-300 bg-white text-red-600 hover:bg-red-50"
-          : `${bg ?? "bg-[#fc970a]"} text-white`
-      }`}>
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition ${variantStyles[variant]}`}
+    >
       <Icon className="h-4 w-4" /> {children}
     </button>
   );

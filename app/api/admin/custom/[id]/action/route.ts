@@ -80,137 +80,139 @@ export const POST = handler(
     let dataPatch: Record<string, unknown> = {};
     let notifBody = "";
 
-    switch (b.kind) {
-      case "set-estimasi": {
-        if (!["SUBMITTED", "MENUNGGU_ESTIMASI", "DRAFT"].includes(o.status))
-          return fail(400, "Tidak bisa set estimasi di status ini");
-        const total = b.items.reduce((s, it) => s + it.harga, 0);
-        nextStatus = "MENUNGGU_PERSETUJUAN";
-        dataPatch = {
-          estimasi: { items: b.items, total },
-          estimasiTanggal: b.tanggalMulai && b.tanggalSelesai
-            ? { mulai: b.tanggalMulai, selesai: b.tanggalSelesai }
-            : null,
-          quotedByAdminAt: new Date(),
-          quotedCatatan: b.catatan?.trim() || null,
-        };
-        notifBody = `Custom order ${id}: estimasi Rp ${total.toLocaleString("id-ID")}. Silakan setujui untuk lanjut bayar.`;
-        break;
-      }
-      case "verify-dp": {
-        if (o.status !== "MENUNGGU_VERIFIKASI_DP") return fail(400, "Bukan status verifikasi DP");
-        nextStatus = "DIPROSES";
-        await prisma.payment.updateMany({
-          where: { customOrderId: id, type: "DP", status: "PENDING" },
-          data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
-        });
-        notifBody = `Custom order ${id} masuk tahap produksi.`;
-        break;
-      }
-      case "verify-lunas": {
-        if (o.status !== "MENUNGGU_VERIFIKASI_LUNAS") return fail(400, "Bukan status verifikasi Lunas");
-        nextStatus = "DIPROSES";
-        await prisma.payment.updateMany({
-          where: { customOrderId: id, type: "FULL", status: "PENDING" },
-          data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
-        });
-        notifBody = `Custom order ${id} masuk tahap produksi.`;
-        break;
-      }
-      case "verify-pelunasan": {
-        if (o.status !== "MENUNGGU_VERIFIKASI_PELUNASAN") return fail(400, "Bukan status verifikasi Pelunasan");
-        // Pelunasan terverifikasi → kembali ke DIPROSES agar admin bisa kirim
-        nextStatus = "DIPROSES";
-        await prisma.payment.updateMany({
-          where: { customOrderId: id, type: "PELUNASAN", status: "PENDING" },
-          data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
-        });
-        dataPatch = { sisaAmount: 0 };
-        notifBody = `Pelunasan custom order ${id} disetujui. Silakan siapkan pengiriman.`;
-        break;
-      }
-      case "reject-order": {
-        if (["SELESAI", "DIKIRIM"].includes(o.status)) return fail(400, "Tidak bisa ditolak di status ini");
-        nextStatus = "REJECTED";
-        dataPatch = { notes: `${o.notes ?? ""}\n\n[DITOLAK ADMIN] ${b.alasan}`.trim() };
-        notifBody = `Custom order ${id} ditolak admin. Alasan: ${b.alasan.slice(0, 100)}`;
-        break;
-      }
-      case "reject-dp":
-      case "reject-lunas":
-      case "reject-pelunasan": {
-        const map = {
-          "reject-dp": { from: "MENUNGGU_VERIFIKASI_DP", to: "MENUNGGU_PEMBAYARAN", payType: "DP", tag: "DP" },
-          "reject-lunas": { from: "MENUNGGU_VERIFIKASI_LUNAS", to: "MENUNGGU_PEMBAYARAN", payType: "FULL", tag: "LUNAS" },
-          "reject-pelunasan": { from: "MENUNGGU_VERIFIKASI_PELUNASAN", to: "SIAP_DILUNASI", payType: "PELUNASAN", tag: "PELUNASAN" },
-        } as const;
-        const m = map[b.kind];
-        if (o.status !== m.from) return fail(400, "Status tidak sesuai");
-        nextStatus = m.to as CustomStatus;
-        await prisma.payment.updateMany({
-          where: { customOrderId: id, type: m.payType, status: "PENDING" },
-          data: { status: "REJECTED", verifiedAt: new Date(), verifiedById: admin.id, alasanTolak: b.alasan },
-        });
-        dataPatch = { notes: `${o.notes ?? ""}\n\n[${m.tag} DITOLAK] ${b.alasan}`.trim() };
-        notifBody = `Bukti ${m.tag} ${id} ditolak. Alasan: ${b.alasan.slice(0, 100)}. Upload ulang.`;
-        break;
-      }
-      case "mark-siap-dilunasi": {
-        if (o.status !== "DIPROSES" || o.paymentType !== "DP") return fail(400, "Tidak boleh di status ini");
-        nextStatus = "SIAP_DILUNASI";
-        notifBody = `Custom order ${id} siap! Silakan lunasi sisa pembayaran.`;
-        break;
-      }
-      case "mark-dikirim": {
-        // Hanya bisa kirim dari DIPROSES (setelah produksi selesai / pelunasan verified)
-        if (o.status !== "DIPROSES") return fail(400, "Pesanan harus dalam status diproduksi terlebih dahulu");
-        nextStatus = "DIKIRIM";
-        notifBody = `Custom order ${id} sudah dikirim.`;
-        break;
-      }
-      case "mark-selesai": {
-        // Hanya bisa selesai dari DIKIRIM (konfirmasi terima by customer atau manual admin)
-        if (o.status !== "DIKIRIM") return fail(400, "Pesanan harus dikirim terlebih dahulu");
-        nextStatus = "SELESAI";
-        notifBody = `Custom order ${id} ditandai selesai. Jangan lupa kasih ulasan!`;
-        break;
-      }
-      case "toggle-late": {
-        const next = b.val ?? !o.isLate;
-        dataPatch = { isLate: next };
-        if (next) notifBody = `Custom order ${id} mengalami keterlambatan produksi. Mohon maaf.`;
-        break;
-      }
-      case "append-catatan": {
-        dataPatch = { notes: `${o.notes ?? ""}\n\n[ADMIN] ${b.catatan}`.trim() };
-        break;
-      }
-      case "add-progress": {
-        if (!["DIPROSES", "SIAP_DILUNASI", "DIKIRIM"].includes(o.status))
-          return fail(400, "Tidak boleh tambah progress di status ini");
-        await prisma.customprogress.create({
-          data: {
-            customOrderId: id, tahap: b.tahap, deskripsi: b.deskripsi ?? null,
-            fotoPath: b.fotoPath ?? null, byAdminId: admin.id,
-          },
-        });
-        notifBody = b.deskripsi?.slice(0, 120) ?? `Update progress baru: ${b.tahap}`;
-        break;
-      }
-      case "delete-progress": {
-        await prisma.customprogress.delete({ where: { id: b.updateId } }).catch(() => {});
-        break;
-      }
-    }
+    const updated = await prisma.$transaction(async (tx) => {
+      const currentOrder = await tx.customorder.findUnique({ where: { id } });
+      if (!currentOrder) throw new Error("Custom order tidak ditemukan");
 
-    const updated = await prisma.customorder.update({
-      where: { id },
-      data: { ...dataPatch, ...(nextStatus ? { status: nextStatus } : {}) },
-      include: {
-        user: { select: { id: true, username: true, email: true } },
-        customprogress: { orderBy: { createdAt: "asc" } },
-        payment: { orderBy: { createdAt: "asc" } },
-      },
+      switch (b.kind) {
+        case "set-estimasi": {
+          if (!["SUBMITTED", "MENUNGGU_ESTIMASI", "DRAFT"].includes(currentOrder.status))
+            throw new Error("Tidak bisa set estimasi di status ini");
+          const total = b.items.reduce((s, it) => s + it.harga, 0);
+          nextStatus = "MENUNGGU_PERSETUJUAN";
+          dataPatch = {
+            estimasi: { items: b.items, total },
+            estimasiTanggal: b.tanggalMulai && b.tanggalSelesai
+              ? { mulai: b.tanggalMulai, selesai: b.tanggalSelesai }
+              : null,
+            quotedByAdminAt: new Date(),
+            quotedCatatan: b.catatan?.trim() || null,
+          };
+          notifBody = `Custom order ${id}: estimasi Rp ${total.toLocaleString("id-ID")}. Silakan setujui untuk lanjut bayar.`;
+          break;
+        }
+        case "verify-dp": {
+          if (currentOrder.status !== "MENUNGGU_VERIFIKASI_DP") throw new Error("Bukan status verifikasi DP");
+          nextStatus = "DIPROSES";
+          await tx.payment.updateMany({
+            where: { customOrderId: id, type: "DP", status: "PENDING" },
+            data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
+          });
+          notifBody = `Custom order ${id} masuk tahap produksi.`;
+          break;
+        }
+        case "verify-lunas": {
+          if (currentOrder.status !== "MENUNGGU_VERIFIKASI_LUNAS") throw new Error("Bukan status verifikasi Lunas");
+          nextStatus = "DIPROSES";
+          await tx.payment.updateMany({
+            where: { customOrderId: id, type: "FULL", status: "PENDING" },
+            data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
+          });
+          notifBody = `Custom order ${id} masuk tahap produksi.`;
+          break;
+        }
+        case "verify-pelunasan": {
+          if (currentOrder.status !== "MENUNGGU_VERIFIKASI_PELUNASAN") throw new Error("Bukan status verifikasi Pelunasan");
+          nextStatus = "DIPROSES";
+          await tx.payment.updateMany({
+            where: { customOrderId: id, type: "PELUNASAN", status: "PENDING" },
+            data: { status: "VERIFIED", verifiedAt: new Date(), verifiedById: admin.id },
+          });
+          dataPatch = { sisaAmount: 0 };
+          notifBody = `Pelunasan custom order ${id} disetujui. Silakan siapkan pengiriman.`;
+          break;
+        }
+        case "reject-order": {
+          if (["SELESAI", "DIKIRIM"].includes(currentOrder.status)) throw new Error("Tidak bisa ditolak di status ini");
+          nextStatus = "REJECTED";
+          dataPatch = { notes: `${currentOrder.notes ?? ""}\n\n[DITOLAK ADMIN] ${b.alasan}`.trim() };
+          notifBody = `Custom order ${id} ditolak admin. Alasan: ${b.alasan.slice(0, 100)}`;
+          break;
+        }
+        case "reject-dp":
+        case "reject-lunas":
+        case "reject-pelunasan": {
+          const map = {
+            "reject-dp": { from: "MENUNGGU_VERIFIKASI_DP", to: "MENUNGGU_PEMBAYARAN", payType: "DP", tag: "DP" },
+            "reject-lunas": { from: "MENUNGGU_VERIFIKASI_LUNAS", to: "MENUNGGU_PEMBAYARAN", payType: "FULL", tag: "LUNAS" },
+            "reject-pelunasan": { from: "MENUNGGU_VERIFIKASI_PELUNASAN", to: "SIAP_DILUNASI", payType: "PELUNASAN", tag: "PELUNASAN" },
+          } as const;
+          const m = map[b.kind];
+          if (currentOrder.status !== m.from) throw new Error("Status tidak sesuai");
+          nextStatus = m.to as CustomStatus;
+          await tx.payment.updateMany({
+            where: { customOrderId: id, type: m.payType, status: "PENDING" },
+            data: { status: "REJECTED", verifiedAt: new Date(), verifiedById: admin.id, alasanTolak: b.alasan },
+          });
+          dataPatch = { notes: `${currentOrder.notes ?? ""}\n\n[${m.tag} DITOLAK] ${b.alasan}`.trim() };
+          notifBody = `Bukti ${m.tag} ${id} ditolak. Alasan: ${b.alasan.slice(0, 100)}. Upload ulang.`;
+          break;
+        }
+        case "mark-siap-dilunasi": {
+          if (currentOrder.status !== "DIPROSES" || currentOrder.paymentType !== "DP") throw new Error("Tidak boleh di status ini");
+          nextStatus = "SIAP_DILUNASI";
+          notifBody = `Custom order ${id} siap! Silakan lunasi sisa pembayaran.`;
+          break;
+        }
+        case "mark-dikirim": {
+          if (currentOrder.status !== "DIPROSES") throw new Error("Pesanan harus dalam status diproduksi terlebih dahulu");
+          nextStatus = "DIKIRIM";
+          notifBody = `Custom order ${id} sudah dikirim.`;
+          break;
+        }
+        case "mark-selesai": {
+          if (currentOrder.status !== "DIKIRIM") throw new Error("Pesanan harus dikirim terlebih dahulu");
+          nextStatus = "SELESAI";
+          notifBody = `Custom order ${id} ditandai selesai. Jangan lupa kasih ulasan!`;
+          break;
+        }
+        case "toggle-late": {
+          const next = b.val ?? !currentOrder.isLate;
+          dataPatch = { isLate: next };
+          if (next) notifBody = `Custom order ${id} mengalami keterlambatan produksi. Mohon maaf.`;
+          break;
+        }
+        case "append-catatan": {
+          dataPatch = { notes: `${currentOrder.notes ?? ""}\n\n[ADMIN] ${b.catatan}`.trim() };
+          break;
+        }
+        case "add-progress": {
+          if (!["DIPROSES", "SIAP_DILUNASI", "DIKIRIM"].includes(currentOrder.status))
+            throw new Error("Tidak boleh tambah progress di status ini");
+          await tx.customprogress.create({
+            data: {
+              customOrderId: id, tahap: b.tahap, deskripsi: b.deskripsi ?? null,
+              fotoPath: b.fotoPath ?? null, byAdminId: admin.id,
+            },
+          });
+          notifBody = b.deskripsi?.slice(0, 120) ?? `Update progress baru: ${b.tahap}`;
+          break;
+        }
+        case "delete-progress": {
+          await tx.customprogress.delete({ where: { id: b.updateId } }).catch(() => {});
+          break;
+        }
+      }
+
+      return tx.customorder.update({
+        where: { id },
+        data: { ...dataPatch, ...(nextStatus ? { status: nextStatus } : {}) },
+        include: {
+          user: { select: { id: true, username: true, email: true } },
+          customprogress: { orderBy: { createdAt: "asc" } },
+          payment: { orderBy: { createdAt: "asc" } },
+        },
+      });
     });
 
     if (notifBody) {

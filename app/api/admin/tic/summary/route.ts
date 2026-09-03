@@ -56,88 +56,85 @@ export const GET = handler(async (req: Request) => {
     prisma.order.count({ where: { ...dateRange, status: "DIBATALKAN" } }),
     // Kadaluarsa
     prisma.order.count({ where: { ...dateRange, status: "KADALUARSA" } }),
-    // All orders for revenue calculation
-    prisma.order.findMany({
+    // Aggregasi pendapatan pesanan langsung di level database SQL
+    prisma.order.aggregate({
       where: {
         ...dateRange,
         status: { in: ["SELESAI", "DIKIRIM", "DIPROSES", "MENUNGGU_KONFIRMASI"] },
       },
-      select: { total: true, ongkir: true, biayaPacking: true, diskon: true, subtotal: true },
+      _sum: { total: true, ongkir: true, biayaPacking: true, diskon: true, subtotal: true },
     }),
   ]);
 
   // ─── CUSTOM ORDER STATS ────────────────────────────────────────
-  const customOrderSelesai = await prisma.customorder.count({
-    where: { ...dateRange, status: "SELESAI" },
-  });
-  const customOrderDibatalkan = await prisma.customorder.count({
-    where: { ...dateRange, status: "DIBATALKAN" },
-  });
+  const [customOrderSelesai, customOrderDibatalkan] = await Promise.all([
+    prisma.customorder.count({
+      where: { ...dateRange, status: "SELESAI" },
+    }),
+    prisma.customorder.count({
+      where: { ...dateRange, status: "DIBATALKAN" },
+    }),
+  ]);
 
-  // ─── PAYMENT STATS ────────────────────────────────────────────
-  const verifiedPayments = await prisma.payment.findMany({
+  // ─── PAYMENT STATS (NATIVE AGGREGATE) ─────────────────────────
+  const paymentDateFilter = (f.from || f.to)
+    ? {
+        createdAt: {
+          ...(f.from ? { gte: new Date(f.from) } : {}),
+          ...(f.to
+            ? (() => {
+                const d = new Date(f.to);
+                d.setHours(23, 59, 59, 999);
+                return { lte: d };
+              })()
+            : {}),
+        },
+      }
+    : {};
+
+  const verifiedPaymentsAgg = await prisma.payment.aggregate({
     where: {
       status: "VERIFIED",
-      ...(f.from || f.to
-        ? {
-            createdAt: {
-              ...(f.from ? { gte: new Date(f.from) } : {}),
-              ...(f.to
-                ? (() => {
-                    const d = new Date(f.to);
-                    d.setHours(23, 59, 59, 999);
-                    return { lte: d };
-                  })()
-                : {}),
-            },
-          }
-        : {}),
+      ...paymentDateFilter,
     },
-    select: { nominal: true, type: true },
+    _sum: { nominal: true },
   });
 
-  // ─── REFUND STATS ─────────────────────────────────────────────
-  const refunds = await prisma.refund.findMany({
+  // ─── REFUND STATS (NATIVE AGGREGATE) ──────────────────────────
+  const refundDateFilter = (f.from || f.to)
+    ? {
+        createdAt: {
+          ...(f.from ? { gte: new Date(f.from) } : {}),
+          ...(f.to
+            ? (() => {
+                const d = new Date(f.to);
+                d.setHours(23, 59, 59, 999);
+                return { lte: d };
+              })()
+            : {}),
+        },
+      }
+    : {};
+
+  const refundAgg = await prisma.refund.aggregate({
     where: {
       status: { in: ["SELESAI", "TRANSFER_DIKIRIM"] },
-      ...(f.from || f.to
-        ? {
-            createdAt: {
-              ...(f.from ? { gte: new Date(f.from) } : {}),
-              ...(f.to
-                ? (() => {
-                    const d = new Date(f.to);
-                    d.setHours(23, 59, 59, 999);
-                    return { lte: d };
-                  })()
-                : {}),
-            },
-          }
-        : {}),
+      ...refundDateFilter,
     },
-    select: { nominalRefund: true },
+    _sum: { nominalRefund: true },
+    _count: true,
   });
 
   // ─── CALCULATE FINANCIALS ─────────────────────────────────────
-  // Gross Revenue = sum of all order.total (SELESAI + DIKIRIM + DIPROSES + MENUNGGU_KONFIRMASI)
-  const grossRevenue = allOrdersForRevenue.reduce((sum, o) => sum + o.total, 0);
+  const grossRevenue = allOrdersForRevenue._sum?.total ?? 0;
+  const totalVerifiedPayment = verifiedPaymentsAgg._sum?.nominal ?? 0;
+  const totalRefundAmount = refundAgg._sum?.nominalRefund ?? 0;
+  const totalRefundCount = refundAgg._count ?? 0;
+  const totalOngkir = allOrdersForRevenue._sum?.ongkir ?? 0;
+  const totalBiayaPacking = allOrdersForRevenue._sum?.biayaPacking ?? 0;
 
-  // Total verified payment nominal
-  const totalVerifiedPayment = verifiedPayments.reduce((sum, p) => sum + p.nominal, 0);
-
-  // Total Refund Amount
-  const totalRefundAmount = refunds.reduce((sum, r) => sum + r.nominalRefund, 0);
-  const totalRefundCount = refunds.length;
-
-  // Net Revenue = Gross Revenue - Total Refund
   const netRevenue = grossRevenue - totalRefundAmount;
-
-  // Gross Profit = Revenue - Ongkir (biaya yang ditanggung toko)
-  const totalOngkir = allOrdersForRevenue.reduce((sum, o) => sum + o.ongkir, 0);
-  const totalBiayaPacking = allOrdersForRevenue.reduce((sum, o) => sum + o.biayaPacking, 0);
   const grossProfit = grossRevenue - totalOngkir - totalBiayaPacking;
-
-  // Net Profit = Gross Profit - Total Refund
   const netProfit = grossProfit - totalRefundAmount;
 
   // Losses = from cancelled orders that had verified payment

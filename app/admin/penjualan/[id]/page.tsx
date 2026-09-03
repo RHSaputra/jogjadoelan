@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   AlertCircle, ArrowLeft, Banknote, Calendar, CheckCircle2, ClipboardList,
-  Edit3, ExternalLink, FileText, MapPin, Package, Phone, Save, Send,
+  Edit3, ExternalLink, FileText, MapPin, Maximize2, Package, Phone, Save, Send,
   ShieldCheck, ShoppingBag, Truck, User, Wrench, X, XCircle,
 } from "lucide-react";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
@@ -132,74 +132,82 @@ export default function AdminPenjualanDetailPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header */}
+      {/* Header navigasi */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <button onClick={() => router.back()} className="flex items-center gap-2 text-xs font-bold text-gray-900 hover:text-[#FF6B1A]">
-          <ArrowLeft className="h-4 w-4" /> Kembali
+        <button onClick={() => router.back()} className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#FF6B1A] transition">
+          <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar Pesanan
         </button>
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${STATUS_COLOR[order.status]}`}>
-            {STATUS_LABEL[order.status]}
-          </span>
           {isCustom && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-[10px] font-black text-[#FF6B1A]">
-              <Wrench className="h-3 w-3" /> Custom Order
+            <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-3 py-1 text-xs font-bold text-[#FF6B1A]">
+              <Wrench className="h-3.5 w-3.5" /> Custom Order
             </span>
           )}
+          <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_COLOR[order.status]}`}>
+            {STATUS_LABEL[order.status]}
+          </span>
         </div>
       </div>
 
-      {/* Hero */}
-      <section className="rounded-2xl bg-gradient-to-br from-[#fc970a] to-[#1A3066] p-5 text-white shadow-lg sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">ID Pesanan</p>
-        <h2 className="mt-1 text-2xl font-black sm:text-3xl">{order.id}</h2>
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-white/80">
-          <span className="flex items-center gap-1"><Calendar className="h-3.5 w-3.5" />{formatTanggalJamID(order.createdAt)}</span>
-          <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{order.alamat?.nama ?? "-"}</span>
-          <span className="flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{order.alamat?.noHp ?? "-"}</span>
+      {/* Hero Overview Card */}
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">ID Pesanan</span>
+            <h2 className="mt-0.5 text-2xl font-bold text-slate-900 sm:text-3xl font-mono">{order.id}</h2>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+              <span className="flex items-center gap-1.5"><Calendar className="h-4 w-4 text-slate-400" />{formatTanggalJamID(order.createdAt)}</span>
+              <span className="flex items-center gap-1.5"><User className="h-4 w-4 text-slate-400" />{order.alamat?.nama ?? "-"}</span>
+              <span className="flex items-center gap-1.5"><Phone className="h-4 w-4 text-slate-400" />{order.alamat?.noHp ?? "-"}</span>
+            </div>
+          </div>
+          <div className="rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-3 text-right">
+            <p className="text-[11px] font-semibold text-slate-500">Total Transaksi</p>
+            <p className="text-xl font-bold text-slate-900">Rp {order.total.toLocaleString("id-ID")}</p>
+          </div>
         </div>
       </section>
 
       {/* Aksi cepat (kontekstual) */}
       {action && (action.canConfirm || action.canReject || action.canInputResi || action.canMarkDelivered || action.canForceSelesai || action.canCancel) && (
-        <section className="rounded-2xl border-2 border-amber-200 bg-amber-50/50 p-4 shadow-sm">
-          <p className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-amber-700">
-            <ShieldCheck className="h-4 w-4" /> Aksi Tersedia
+        <section className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-xs">
+          <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+            <ShieldCheck className="h-4 w-4 text-[#FF6B1A]" /> Aksi Operasional Tersedia
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {action.canConfirm && (
               <button onClick={() => setActionKind("confirm")}
-                className="flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-emerald-700">
+                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition">
                 <CheckCircle2 className="h-4 w-4" /> Setujui Bukti Bayar
-              </button>
-            )}
-            {action.canReject && (
-              <button onClick={() => setActionKind("reject")}
-                className="flex items-center gap-2 rounded-full bg-red-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-red-700">
-                <XCircle className="h-4 w-4" /> Tolak Bukti
               </button>
             )}
             {action.canInputResi && (
               <button onClick={() => setShowResiForm(true)}
-                className="flex items-center gap-2 rounded-full bg-[#FF6B1A] px-4 py-2 text-xs font-black text-white shadow hover:bg-[#E55A0F]">
+                className="flex items-center gap-2 rounded-xl bg-[#FF6B1A] px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-[#E04E00] transition">
                 <Truck className="h-4 w-4" /> Input Resi & Kirim
               </button>
             )}
             {action.canMarkDelivered && (
               <button onClick={() => setActionKind("delivered")}
-                className="flex items-center gap-2 rounded-full bg-purple-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-purple-700">
+                className="flex items-center gap-2 rounded-xl bg-white border border-slate-300 text-slate-800 px-4 py-2 text-xs font-bold shadow-xs hover:bg-slate-50 transition">
                 <Package className="h-4 w-4" /> Tandai Sampai
               </button>
             )}
             {action.canForceSelesai && (
               <button onClick={() => setActionKind("forceSelesai")}
-                className="flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-xs font-black text-white shadow hover:bg-green-700">
+                className="flex items-center gap-2 rounded-xl bg-white border border-slate-300 text-slate-800 px-4 py-2 text-xs font-bold shadow-xs hover:bg-slate-50 transition">
                 <CheckCircle2 className="h-4 w-4" /> Selesaikan Sekarang
+              </button>
+            )}
+            {action.canReject && (
+              <button onClick={() => setActionKind("reject")}
+                className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition">
+                <XCircle className="h-4 w-4" /> Tolak Bukti
               </button>
             )}
             {action.canCancel && (
               <button onClick={() => setActionKind("cancel")}
-                className="flex items-center gap-2 rounded-full border-2 border-red-300 bg-white px-4 py-2 text-xs font-black text-red-600 hover:bg-red-50">
+                className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 px-4 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition">
                 <X className="h-4 w-4" /> Batalkan Pesanan
               </button>
             )}
@@ -215,10 +223,12 @@ export default function AdminPenjualanDetailPage() {
             <Card icon={FileText} title="Bukti Pembayaran" subtitle={order.buktiBayarAt ? `Diunggah ${formatTanggalJamID(order.buktiBayarAt)}` : undefined}>
               {order.buktiBayar ? (
                 <div className="flex flex-wrap items-start gap-4">
-                  <button onClick={() => setPreviewBukti(true)} className="group relative h-40 w-40 overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-50">
+                  <button onClick={() => setPreviewBukti(true)} className="group relative h-40 w-40 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={order.buktiBayar} alt="Bukti" className="h-full w-full object-cover transition group-hover:scale-105" />
-                    <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-bold text-white">Klik perbesar</span>
+                    <span className="absolute bottom-2 right-2 rounded-lg bg-black/60 p-1.5 text-white shadow-xs backdrop-blur-xs">
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </span>
                   </button>
                   <div className="flex-1 min-w-[200px] space-y-1.5 text-xs">
                     <Field label="Metode" value={order.pembayaran?.metode?.toUpperCase() ?? "-"} />
@@ -341,7 +351,7 @@ export default function AdminPenjualanDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-xs text-gray-500">Belum ada nomor resi. Klik tombol &quot;Input Resi &amp; Kirim&quot; di atas.</p>
+                <p className="text-xs text-slate-500">Nomor resi pengiriman belum diinput.</p>
               )}
             </Card>
           )}

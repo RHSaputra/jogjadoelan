@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
-  ArrowRight, CheckCircle2, ChevronDown, Clock, Download, FileCheck,
+  ArrowRight, CheckCircle2, ChevronDown, Clock, Download, ExternalLink, FileCheck,
   Filter, Package, Search, ShoppingBag, Truck, Wrench, X,
 } from "lucide-react";
 import {
@@ -13,6 +14,11 @@ import {
 import {
   listOrdersForAdmin, getAdminOrderStats, type AdminOrderFilter,
 } from "@/lib/admin-orders-helpers";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { AdminStatCard } from "@/components/admin/ui/AdminStatCard";
+import { AdminStatusBadge } from "@/components/admin/ui/AdminStatusBadge";
+import { AdminCard } from "@/components/admin/ui/AdminCard";
+import { AdminEmptyState } from "@/components/admin/ui/AdminEmptyState";
 
 const STATUS_TABS: { key: OrderStatus | "all"; label: string }[] = [
   { key: "all",                  label: "Semua" },
@@ -46,6 +52,7 @@ export default function AdminPenjualanPage() {
 
   const [stats, setStats] = useState<Awaited<ReturnType<typeof getAdminOrderStats>> | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!mounted) return;
@@ -54,189 +61,342 @@ export default function AdminPenjualanPage() {
 
   useEffect(() => {
     if (!mounted) return;
-    void listOrdersForAdmin(filter).then(setOrders).catch(() => setOrders([]));
+    setLoading(true);
+    void listOrdersForAdmin(filter)
+      .then((res) => {
+        setOrders(res);
+        setLoading(false);
+      })
+      .catch(() => {
+        setOrders([]);
+        setLoading(false);
+      });
   }, [mounted, filter, tick]);
 
-  if (!mounted) return <div className="p-6 text-sm text-gray-500">Memuat...</div>;
+  if (!mounted) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-14 w-1/4 rounded-xl bg-slate-200" />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-200" />)}
+        </div>
+        <div className="h-96 rounded-2xl bg-slate-200" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-5">
-      {/* Stat header */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Total Pesanan"   value={stats?.total ?? 0}                          icon={ShoppingBag} bg="bg-[#fc970a]" />
-        <StatCard label="Perlu Verifikasi" value={stats?.byStatus.menunggu_konfirmasi ?? 0}  icon={FileCheck}   bg="bg-amber-500" badge={(stats?.byStatus.menunggu_konfirmasi ?? 0) > 0 ? "URGENT" : undefined} />
-        <StatCard label="Sedang Diproses"  value={(stats?.byStatus.diproses ?? 0) + (stats?.byStatus.dikirim ?? 0)} icon={Truck} bg="bg-indigo-500" />
-        <StatCard label="Total Omzet"      value={`Rp ${(stats?.omzet ?? 0).toLocaleString("id-ID")}`} icon={CheckCircle2} bg="bg-emerald-500" />
+    <div className="space-y-6">
+      {/* Page Header */}
+      <AdminPageHeader
+        title="Daftar Pesanan"
+        subtitle="Kelola pesanan pelanggan, pantau status pembayaran & logistik secara real-time"
+        breadcrumbs={[{ label: "Sales" }, { label: "Pesanan" }]}
+        actions={
+          <button
+            type="button"
+            onClick={() => {
+              // Quick export placeholder or logic
+              alert("Menyiapkan ekspor data pesanan...");
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
+          >
+            <Download className="h-4 w-4 text-slate-500" />
+            Export Data
+          </button>
+        }
+      />
+
+      {/* KPI Stats */}
+      <section className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
+        <AdminStatCard
+          label="Total Pesanan"
+          value={stats?.total ?? 0}
+          subtitle="Semua status transaksi"
+          icon={ShoppingBag}
+          color="orange"
+        />
+        <AdminStatCard
+          label="Perlu Verifikasi"
+          value={stats?.byStatus.menunggu_konfirmasi ?? 0}
+          subtitle="Bukti bayar butuh konfirmasi"
+          icon={FileCheck}
+          color="amber"
+          alert={(stats?.byStatus.menunggu_konfirmasi ?? 0) > 0}
+        />
+        <AdminStatCard
+          label="Sedang Diproses"
+          value={(stats?.byStatus.diproses ?? 0) + (stats?.byStatus.dikirim ?? 0)}
+          subtitle="Packing & dalam pengiriman"
+          icon={Truck}
+          color="blue"
+        />
+        <AdminStatCard
+          label="Total Omzet"
+          value={`Rp ${(stats?.omzet ?? 0).toLocaleString("id-ID")}`}
+          subtitle="Akumulasi omzet penjualan"
+          icon={CheckCircle2}
+          color="emerald"
+        />
       </section>
 
-      {/* Toolbar */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      {/* Filter & Status Tabs Toolbar */}
+      <AdminCard bodyClassName="p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               value={filter.q ?? ""}
               onChange={(e) => setFilter({ ...filter, q: e.target.value })}
-              placeholder="Cari ID, nama pembeli, no HP..."
-              className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-4 text-xs outline-none focus:border-[#FF6B1A] focus:bg-white"
+              placeholder="Cari ID pesanan, nama pembeli, no HP..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-xs text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#FF6B1A] focus:bg-white focus:ring-3 focus:ring-orange-500/10"
             />
           </div>
-          <select
-            value={filter.jenis ?? "all"}
-            onChange={(e) => setFilter({ ...filter, jenis: e.target.value as AdminOrderFilter["jenis"] })}
-            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-900 outline-none focus:border-[#FF6B1A]"
-          >
-            <option value="all">Semua Jenis</option>
-            <option value="reguler">Reguler</option>
-            <option value="custom">Custom</option>
-          </select>
-          <button
-            onClick={() => setShowFilter(!showFilter)}
-            className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2.5 text-xs font-bold text-gray-900 hover:bg-gray-50"
-          >
-            <Filter className="h-3.5 w-3.5" /> Tanggal
-            <ChevronDown className={`h-3.5 w-3.5 transition ${showFilter ? "rotate-180" : ""}`} />
-          </button>
-          <button className="flex items-center gap-1.5 rounded-full bg-[#fc970a] px-4 py-2.5 text-xs font-black text-white hover:bg-[#e08a00]">
-            <Download className="h-3.5 w-3.5" /> Export
-          </button>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <select
+              value={filter.jenis ?? "all"}
+              onChange={(e) => setFilter({ ...filter, jenis: e.target.value as AdminOrderFilter["jenis"] })}
+              className="rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none transition focus:border-[#FF6B1A] focus:bg-white cursor-pointer"
+            >
+              <option value="all">Semua Jenis</option>
+              <option value="reguler">Reguler</option>
+              <option value="custom">Custom</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setShowFilter(!showFilter)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            >
+              <Filter className="h-3.5 w-3.5 text-slate-500" />
+              <span>Tanggal</span>
+              <ChevronDown className={`h-3.5 w-3.5 text-slate-400 transition-transform ${showFilter ? "rotate-180" : ""}`} />
+            </button>
+          </div>
         </div>
 
+        {/* Expandable Date Filter */}
         {showFilter && (
-          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-900">
-              Dari
-              <input type="date" value={filter.from ?? ""} onChange={(e) => setFilter({ ...filter, from: e.target.value })}
-                className="rounded-md border border-gray-200 px-2 py-1.5 text-xs" />
+          <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-100">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+              Dari:
+              <input
+                type="date"
+                value={filter.from ?? ""}
+                onChange={(e) => setFilter({ ...filter, from: e.target.value })}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-[#FF6B1A]"
+              />
             </label>
-            <label className="flex items-center gap-2 text-xs font-bold text-gray-900">
-              Sampai
-              <input type="date" value={filter.to ?? ""} onChange={(e) => setFilter({ ...filter, to: e.target.value })}
-                className="rounded-md border border-gray-200 px-2 py-1.5 text-xs" />
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+              Sampai:
+              <input
+                type="date"
+                value={filter.to ?? ""}
+                onChange={(e) => setFilter({ ...filter, to: e.target.value })}
+                className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-[#FF6B1A]"
+              />
             </label>
             {(filter.from || filter.to) && (
-              <button onClick={() => setFilter({ ...filter, from: undefined, to: undefined })}
-                className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-600 hover:bg-gray-200">
-                <X className="h-3 w-3" /> Reset
+              <button
+                type="button"
+                onClick={() => setFilter({ ...filter, from: undefined, to: undefined })}
+                className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition"
+              >
+                <X className="h-3 w-3" /> Reset Tanggal
               </button>
             )}
           </div>
         )}
 
-        {/* Status tabs */}
-        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-gray-100 pt-3">
+        {/* Status Pill Tabs (Horizontal touch-scroll on mobile) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 pt-2 border-t border-slate-100">
           {STATUS_TABS.map((t) => {
             const active = (filter.status ?? "all") === t.key;
             const count = t.key === "all" ? stats?.total ?? 0 : (stats?.byStatus[t.key as OrderStatus] ?? 0);
             return (
               <button
                 key={t.key}
+                type="button"
                 onClick={() => setFilter({ ...filter, status: t.key })}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                  active ? "bg-[#FF6B1A] text-white shadow" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all shrink-0 ${
+                  active
+                    ? "bg-[#FF6B1A] text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
                 }`}
               >
-                {t.label}
-                <span className={`rounded-full px-1.5 text-[9px] ${active ? "bg-white/20 text-white" : "bg-white text-gray-600"}`}>{count}</span>
+                <span>{t.label}</span>
+                <span
+                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+                    active ? "bg-white/20 text-white" : "bg-white text-slate-600"
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
-      </section>
+      </AdminCard>
 
-      {/* Table */}
-      <section className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        {orders.length === 0 ? (
-          <div className="py-16 text-center">
-            <ShoppingBag className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-3 text-sm font-black text-gray-500">Tidak ada pesanan</p>
-            <p className="text-xs text-gray-400">Coba ubah filter atau tunggu pesanan masuk</p>
+      {/* Orders Table */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        {loading ? (
+          <div className="py-16 text-center text-slate-400">
+            <div className="inline-flex h-8 w-8 animate-spin rounded-full border-2 border-[#FF6B1A] border-t-transparent" />
+            <p className="mt-2 text-xs font-semibold text-slate-500">Memuat pesanan...</p>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="p-8">
+            <AdminEmptyState
+              icon={ShoppingBag}
+              title="Tidak ada pesanan ditemukan"
+              description="Tidak ada data transaksi yang cocok dengan kriteria filter saat ini."
+              action={
+                <button
+                  type="button"
+                  onClick={() => setFilter({ status: "all", jenis: "all" })}
+                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+                >
+                  Reset Semua Filter
+                </button>
+              }
+            />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr className="text-left font-black uppercase text-[10px] tracking-wider text-gray-500">
-                  <th className="px-4 py-3">ID Pesanan</th>
-                  <th className="px-4 py-3">Pembeli</th>
-                  <th className="px-4 py-3">Jenis</th>
-                  <th className="px-4 py-3">Item</th>
-                  <th className="px-4 py-3 text-right">Total</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <OrderRow key={o.id} o={o} onClick={() => router.push(`/admin/penjualan/${o.id}`)} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th className="px-5 py-3.5">ID Pesanan</th>
+                    <th className="px-4 py-3.5">Pelanggan</th>
+                    <th className="px-4 py-3.5">Jenis</th>
+                    <th className="px-4 py-3.5">Produk</th>
+                    <th className="px-4 py-3.5 text-right">Total</th>
+                    <th className="px-4 py-3.5 text-center">Status</th>
+                    <th className="px-4 py-3.5">Waktu</th>
+                    <th className="px-5 py-3.5 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {orders.map((o) => {
+                    const isCustom = o.jenisOrder === "custom" || !!o.customMeta;
+                    return (
+                      <tr
+                        key={o.id}
+                        onClick={() => router.push(`/admin/penjualan/${o.id}`)}
+                        className="cursor-pointer hover:bg-slate-50/70 transition-colors group"
+                      >
+                        <td className="px-5 py-3.5">
+                          <p className="font-bold text-slate-900 font-mono group-hover:text-[#FF6B1A] transition-colors">
+                            #{o.id}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {o.items.length} item
+                          </p>
+                        </td>
 
-function OrderRow({ o, onClick }: { o: Order; onClick: () => void }) {
-  const isCustom = o.jenisOrder === "custom" || !!o.customMeta;
-  return (
-    <tr className="cursor-pointer border-b border-gray-100 transition hover:bg-orange-50/30" onClick={onClick}>
-      <td className="px-4 py-3">
-        <p className="font-black text-gray-900">{o.id}</p>
-        <p className="text-[10px] text-gray-500">{o.items.length} item</p>
-      </td>
-      <td className="px-4 py-3">
-        <p className="font-bold text-gray-900">{o.alamat?.nama ?? "-"}</p>
-        <p className="text-[10px] text-gray-500">{o.alamat?.noHp ?? "-"}</p>
-      </td>
-      <td className="px-4 py-3">
-        {isCustom ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-black text-[#FF6B1A]">
-            <Wrench className="h-3 w-3" /> Custom
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black text-blue-700">
-            <Package className="h-3 w-3" /> Reguler
-          </span>
-        )}
-      </td>
-      <td className="px-4 py-3">
-        <p className="line-clamp-1 max-w-[200px] text-gray-700">{o.items[0]?.nama ?? "-"}</p>
-        {o.items.length > 1 && <p className="text-[10px] text-gray-500">+{o.items.length - 1} lainnya</p>}
-      </td>
-      <td className="px-4 py-3 text-right font-black text-gray-900">Rp {o.total.toLocaleString("id-ID")}</td>
-      <td className="px-4 py-3">
-        <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-black ${STATUS_COLOR[o.status]}`}>
-          {STATUS_LABEL[o.status]}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-[11px] text-gray-600">
-        <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3 text-gray-400" />
-          {formatTanggalJamID(o.createdAt)}
-        </div>
-      </td>
-      <td className="px-4 py-3">
-        <ArrowRight className="h-4 w-4 text-[#FF6B1A]" />
-      </td>
-    </tr>
-  );
-}
+                        <td className="px-4 py-3.5">
+                          <p className="font-semibold text-slate-800 truncate max-w-[150px]">
+                            {o.alamat?.nama ?? "-"}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {o.alamat?.noHp ?? "-"}
+                          </p>
+                        </td>
 
-function StatCard({ label, value, icon: Icon, bg, badge }: {
-  label: string; value: string | number; icon: React.ElementType; bg: string; badge?: string;
-}) {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-      {badge && <span className="absolute right-2 top-2 animate-pulse rounded-full bg-red-600 px-2 py-0.5 text-[8px] font-black text-white">{badge}</span>}
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${bg} text-white shadow-md`}>
-        <Icon className="h-5 w-5" />
+                        <td className="px-4 py-3.5">
+                          {isCustom ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2 py-0.5 text-[10px] font-bold text-[#FF6B1A]">
+                              <Wrench className="h-3 w-3" /> Custom
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 border border-sky-200 px-2 py-0.5 text-[10px] font-bold text-sky-700">
+                              <Package className="h-3 w-3" /> Reguler
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3.5">
+                          <p className="line-clamp-1 max-w-[200px] font-medium text-slate-700">
+                            {o.items[0]?.nama ?? "-"}
+                          </p>
+                          {o.items.length > 1 && (
+                            <p className="text-[10px] text-slate-400">
+                              +{o.items.length - 1} produk lainnya
+                            </p>
+                          )}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-right font-bold text-slate-900">
+                          Rp {o.total.toLocaleString("id-ID")}
+                        </td>
+
+                        <td className="px-4 py-3.5 text-center">
+                          <AdminStatusBadge status={o.status} size="sm" />
+                        </td>
+
+                        <td className="px-4 py-3.5 text-slate-500 whitespace-nowrap text-[11px]">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-slate-400" />
+                            <span>{formatTanggalJamID(o.createdAt)}</span>
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-3.5 text-right">
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-[#FF6B1A] group-hover:underline">
+                            Detail <ArrowRight className="h-3.5 w-3.5" />
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Order Cards View */}
+            <div className="block lg:hidden divide-y divide-slate-100">
+              {orders.map((o) => {
+                const totalItem = o.items.reduce((sum, it) => sum + (it.qty ?? 1), 0);
+                const isCustom = o.jenisOrder === "custom" || !!o.customMeta;
+
+                return (
+                  <div key={o.id} className="p-4 space-y-3 hover:bg-slate-50/50 transition">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono text-xs font-bold text-slate-900">#{o.id}</span>
+                      <AdminStatusBadge status={o.status} size="sm" />
+                    </div>
+
+                    <div className="flex items-start justify-between gap-2 text-xs">
+                      <div>
+                        <p className="font-semibold text-slate-800">{o.alamat?.nama ?? "Tanpa Nama"}</p>
+                        <p className="text-[11px] text-slate-500">{formatTanggalJamID(o.createdAt)}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-slate-900 text-sm">
+                          Rp {o.total.toLocaleString("id-ID")}
+                        </span>
+                        <p className="text-[11px] text-slate-500">{totalItem} barang {isCustom ? "• Custom" : ""}</p>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/admin/penjualan/${o.id}`}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-xs font-bold text-slate-700 hover:bg-[#FF6B1A] hover:text-white hover:border-[#FF6B1A] transition min-h-[44px]"
+                    >
+                      <span>Lihat Detail Pesanan</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
-      <p className="mt-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">{label}</p>
-      <p className="mt-0.5 text-lg font-black text-gray-900">{value}</p>
     </div>
   );
 }

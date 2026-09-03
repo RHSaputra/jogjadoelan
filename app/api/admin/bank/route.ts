@@ -44,24 +44,27 @@ export const PUT = handler(async (req: Request) => {
     aktif: z.boolean().default(true),
   })).parse(await req.json());
 
-  // Hapus semua → insert ulang (satu-satu karena MariaDB butuh id explicit)
-  await prisma.bank.deleteMany();
-  for (const b of body) {
-    const bankId = b.keyUnik ? `${b.keyUnik}-${Date.now()}` : `bank-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    await prisma.bank.create({
-      data: {
-        id: bankId,
-        keyUnik: b.keyUnik || bankId,
-        nama: b.nama,
-        noRek: b.noRek,
-        anNama: b.anNama,
-        color: b.color,
-        logoPath: b.logoPath ?? null,
-        urutan: b.urutan ?? 0,
-        aktif: b.aktif,
-      },
-    });
-  }
-  const result = await prisma.bank.findMany({ orderBy: { urutan: "asc" } });
+  // Hapus semua & insert ulang secara atomik dalam transaksi
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.bank.deleteMany();
+    for (const b of body) {
+      const bankId = b.keyUnik ? `${b.keyUnik}-${Date.now()}` : `bank-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      await tx.bank.create({
+        data: {
+          id: bankId,
+          keyUnik: b.keyUnik || bankId,
+          nama: b.nama,
+          noRek: b.noRek,
+          anNama: b.anNama,
+          color: b.color,
+          logoPath: b.logoPath ?? null,
+          urutan: b.urutan ?? 0,
+          aktif: b.aktif,
+        },
+      });
+    }
+    return tx.bank.findMany({ orderBy: { urutan: "asc" } });
+  });
+
   return ok(result);
 });

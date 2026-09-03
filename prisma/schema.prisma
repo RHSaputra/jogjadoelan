@@ -169,6 +169,10 @@ model customorder {
   customprogress     customprogress[]
   komplain           komplain[]
   payment            payment[]
+
+  @@index([userId], map: "CustomOrder_userId_idx")
+  @@index([status, createdAt], map: "CustomOrder_status_createdAt_idx")
+  @@index([createdAt], map: "CustomOrder_createdAt_idx")
 }
 
 model customprogress {
@@ -452,7 +456,6 @@ model produk {
   ulasan           ulasan[]
   wishlistitem     wishlistitem[]
 
-  @@index([isActive], map: "Produk_isActive_idx")
   @@index([isPromo], map: "Produk_isPromo_idx")
   @@index([jenis], map: "Produk_jenis_idx")
   // CRITICAL FIX: Tambah index yang hilang untuk query-query umum

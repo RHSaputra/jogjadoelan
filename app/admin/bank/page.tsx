@@ -1,10 +1,12 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { Plus, Trash2, Landmark, QrCode, FileText, Upload, Image as ImageIcon } from "lucide-react";
 import { getAdminBanks, saveAdminBanks, getAdminQris, saveAdminQris, getAdminInstruksi, saveAdminInstruksi, type BankInfo, type QrisInfo, type InstruksiPembayaran } from "@/lib/admin-bank-helpers";
 import { PageHeader, Section, Input, Textarea, Grid, Button, FormActions } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 
 const COLORS = ["bg-blue-700","bg-blue-500","bg-sky-700","bg-orange-600","bg-emerald-600","bg-red-600","bg-violet-600","bg-amber-500"];
 
@@ -50,8 +52,23 @@ export default function AdminBankPage() {
   };
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="Metode Pembayaran" subtitle="Kelola Bank, QRIS, dan Instruksi Checkout" icon={Landmark} variant="orange" />
+    <div className="space-y-6 pb-24">
+      <AdminPageHeader
+        title="Rekening Bank & QRIS"
+        subtitle="Kelola rekening bank tujuan transfer customer, kode QRIS, dan panduan instruksi pembayaran"
+        breadcrumbs={[{ label: "System" }, { label: "Bank & QRIS" }]}
+        icon={Landmark}
+        actions={
+          <button
+            type="button"
+            disabled={saving}
+            onClick={saveAll}
+            className="rounded-xl bg-[#FF6B1A] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#E04E00] disabled:opacity-50 transition"
+          >
+            {saving ? "Menyimpan..." : dirty ? "Simpan Perubahan *" : "Simpan Pengaturan"}
+          </button>
+        }
+      />
 
       <Section title="QRIS & E-Wallet" subtitle="Upload gambar QRIS untuk pembayaran digital" icon={<QrCode className="h-4 w-4" />}>
         <div className="flex flex-col md:flex-row gap-6">

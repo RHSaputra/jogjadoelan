@@ -5,39 +5,49 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth-server";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await requireAdmin();
 
-    // Get all users who have ever registered (to show all customer rooms)
-    // CRITICAL FIX: user model has `username` and `avatar`, not `nama` and `foto`
+    const { searchParams } = new URL(req.url);
+    const q = searchParams.get("q")?.trim() || "";
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") ?? "100", 10)));
+
+    // Ambil user secara terarah dan terindeks dengan batasan (limit), 
+    // bukan men-dump seluruh database ke RAM Node.js.
     const users = await prisma.user.findMany({
-      select: { id: true, username: true, email: true, avatar: true, createdAt: true },
-      orderBy: { createdAt: "desc" },
+      where: q
+        ? {
+            OR: [
+              { username: { contains: q } },
+              { email: { contains: q } },
+            ],
+          }
+        : undefined,
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        createdAt: true,
+        // Eager load messages hanya untuk user yang diambil, memanfaatkan @@index([userId, createdAt])
+        chatsupportmessage: {
+          where: { deletedAt: null },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: limit,
     });
 
-    // Get all chat messages (not soft-deleted)
-    const msgs = await prisma.chatsupportmessage.findMany({
-      where: { deletedAt: null },
-      orderBy: { createdAt: "asc" },
-    });
-
-    // Create map of userId -> message array
-    const msgMap = new Map<string, typeof msgs>();
-    for (const m of msgs) {
-      if (!msgMap.has(m.userId)) msgMap.set(m.userId, []);
-      msgMap.get(m.userId)!.push(m);
-    }
-
-    // Build rooms for all users (even those without messages)
-    const rooms = [];
-    for (const user of users) {
-      const userMessages = msgMap.get(user.id) || [];
+    const rooms = users.map((user) => {
+      const userMessages = user.chatsupportmessage || [];
       const last = userMessages[userMessages.length - 1];
       const unreadFromUser = userMessages.filter(
         (x) => x.fromRole === "USER" && x.status !== "READ"
       ).length;
-      rooms.push({
+
+      return {
         userId: user.id,
         userName: user.username || user.email || `User ${user.id.slice(0, 6)}`,
         userEmail: user.email,
@@ -48,8 +58,8 @@ export async function GET() {
         totalMessages: userMessages.length,
         unreadFromUser,
         hasUserPending: unreadFromUser > 0,
-      });
-    }
+      };
+    });
 
     rooms.sort((a, b) => b.lastAt - a.lastAt);
     return NextResponse.json({ ok: true, data: rooms });

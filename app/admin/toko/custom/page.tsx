@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import {
@@ -16,6 +16,9 @@ import {
 } from "@/lib/admin-custom-options";
 import { FileUploadField } from "@/components/admin/FileUploadField";
 import { SuccessModal } from "@/components/admin/SuccessModal";
+
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 
 const SECTION_KEYS: (keyof CustomFormConfig & string)[] = [
   "jenis", "finishing", "strap", "ukuran", "motifBusa", "bahan", "aksesoris",
@@ -38,9 +41,7 @@ export default function AdminCustomFormPage() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    getCustomFormAsync().then((data) => {
-      setC(data);
-    });
+    void getCustomFormAsync().then((next) => setC(next));
   }, []);
 
   const upd = (p: Partial<CustomFormConfig>) => {
@@ -49,14 +50,19 @@ export default function AdminCustomFormPage() {
   };
 
   const submit = async () => {
-    await saveCustomFormAsync(c);
-    setDirty(false);
-    setSuccessMsg("Opsi custom helm berhasil disimpan!");
+    try {
+      await saveCustomFormAsync(c);
+      setDirty(false);
+      setSuccessMsg("Pengaturan Form Custom Berhasil Disimpan!");
+    } catch {
+      alert("Gagal menyimpan.");
+    }
   };
 
-  const toggleExpand = (k: string) => setExpanded((x: Record<string, boolean>) => ({ ...x, [k]: !x[k] }));
+  const toggleExpand = (key: string) =>
+    setExpanded((x) => ({ ...x, [key]: !x[key] }));
 
-  const updSection = (key: string, p: Record<string, unknown>) => {
+  const updSection = (key: string, p: Partial<CustomSectionOption>) => {
     const section = c[key as keyof CustomFormConfig] as CustomSectionOption;
     const next = { ...c, [key]: { ...section, ...p } } as CustomFormConfig;
     setC(next);
@@ -88,22 +94,24 @@ export default function AdminCustomFormPage() {
   const delPalette = (idx: number) =>
     upd({ palette: c.palette.filter((_, i) => i !== idx) });
 
+  const totalOptions = SECTION_KEYS.reduce((sum, k) => sum + (c[k] as CustomSectionOption).options.length, 0);
+
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-6 pb-24">
+      <TokoSubnav />
+
       {/* HEADER */}
-      <div className="flex items-center gap-3 rounded-2xl bg-[#fc970a] p-4 text-white shadow-lg">
-        <Palette className="h-6 w-6 shrink-0" />
-        <div className="flex-1">
-          <p className="text-sm font-black">Form Custom Helm</p>
-          <p className="text-[10px] opacity-80">Atur semua opsi & gambar referensi di form custom helm customer</p>
-        </div>
-        <div className="rounded-2xl bg-white/15 px-4 py-2 text-center backdrop-blur">
-          <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">Total Opsi</p>
-          <p className="text-lg font-black">
-            {SECTION_KEYS.reduce((sum, k) => sum + (c[k] as CustomSectionOption).options.length, 0)}
-          </p>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="Opsi Custom Helm"
+        subtitle="Atur semua opsi pilihan komponen, spesifikasi, dan gambar referensi pada formulir custom order pelanggan"
+        breadcrumbs={[{ label: "Toko" }, { label: "Opsi Custom Helm" }]}
+        icon={Palette}
+        badge={
+          <span className="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
+            {totalOptions} Opsi Aktif
+          </span>
+        }
+      />
 
       {/* 7 SECTION FORM CUSTOM */}
       <div className="space-y-4">
@@ -113,33 +121,38 @@ export default function AdminCustomFormPage() {
           const label = SECTION_LABELS[key];
 
           return (
-            <div key={key} className="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-sm">
+            <div key={key} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs">
               <button type="button" onClick={() => toggleExpand(key)}
-                className="flex w-full items-center justify-between gap-3 p-4 text-left">
+                className="flex w-full items-center justify-between gap-3 p-4 text-left hover:bg-slate-50/60 transition-colors">
                 <div className="flex items-center gap-3">
                   {section.imageUrl ? (
-                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-slate-100 border border-slate-200">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={section.imageUrl} alt={section.title} className="h-full w-full object-cover" />
                     </div>
                   ) : (
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                       <ImageIcon className="h-5 w-5" />
                     </div>
                   )}
                   <div>
-                    <p className="text-sm font-black text-gray-900">{label}</p>
-                    <p className="text-[10px] text-gray-500">{section.options.length} opsi</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-slate-900">{label}</p>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                        {section.options.length} opsi
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 line-clamp-1">{section.title}</p>
                   </div>
                 </div>
-                <ChevronDown className={`h-5 w-5 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
+                <ChevronDown className={`h-5 w-5 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
               </button>
 
               {open && (
-                <div className="border-t border-gray-100 p-4 space-y-4">
+                <div className="border-t border-slate-100 p-4 space-y-4 bg-slate-50/30">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Judul" value={section.title} onChange={(v) => updSection(key, { title: v })} />
-                    <FileUploadField label="Gambar Referensi" hint="Klik untuk perbesar saat di customer"
+                    <FileUploadField label="Gambar Referensi" hint="Format rasio 1:1, PNG atau WebP"
                       value={section.imageUrl} onChange={(v) => updSection(key, { imageUrl: v })} aspect="square" />
                   </div>
                   <Field label="Deskripsi (muncul di popup preview)" value={section.description}
@@ -147,16 +160,16 @@ export default function AdminCustomFormPage() {
 
                   <div>
                     <div className="mb-2 flex items-center justify-between">
-                      <p className="text-[10px] font-black uppercase text-gray-500">Daftar Pilihan ({section.options.length})</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Daftar Pilihan ({section.options.length})</p>
                       <button type="button" onClick={() => addOption(key)}
-                        className="flex items-center gap-1 rounded-full bg-[#FF6B1A]/10 px-3 py-1 text-[10px] font-black text-[#FF6B1A] hover:bg-[#FF6B1A]/20">
-                        <Plus className="h-3 w-3" /> Tambah Opsi
+                        className="flex items-center gap-1 rounded-xl bg-orange-50 border border-orange-200/80 px-3 py-1.5 text-xs font-bold text-[#FF6B1A] hover:bg-[#FF6B1A] hover:text-white transition-all shadow-xs">
+                        <Plus className="h-3.5 w-3.5" /> Tambah Opsi
                       </button>
                     </div>
 
                     {section.options.length === 0 && (
-                      <div className="rounded-xl border-2 border-dashed border-gray-200 py-6 text-center">
-                        <p className="text-xs text-gray-400">Belum ada opsi. Klik Tambah Opsi untuk menambahkan.</p>
+                      <div className="rounded-xl border-2 border-dashed border-slate-200 bg-white py-6 text-center">
+                        <p className="text-xs text-slate-500">Belum ada opsi kustomisasi yang ditambahkan.</p>
                       </div>
                     )}
 
@@ -229,7 +242,7 @@ export default function AdminCustomFormPage() {
         </div>
       )}
 
-      {/* SUCCESS MODAL â€” Popup tengah */}
+      {/* SUCCESS MODAL — Popup tengah */}
       <SuccessModal open={!!successMsg} title={successMsg ?? "Berhasil"} onClose={() => setSuccessMsg(null)} />
     </div>
   );

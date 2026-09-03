@@ -8,6 +8,8 @@ import {
   Pencil, RotateCcw, Search, Tag,
 } from "lucide-react";
 import { SuccessModal } from "@/components/admin/SuccessModal";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { AdminStatCard } from "@/components/admin/ui/AdminStatCard";
 import {
   adjustProductStock, clearProductOverride, clearProductStockOverride,
   formatRp, getProductJenisList, getProductStats, getStockBadge,
@@ -89,74 +91,106 @@ export default function AdminProdukPage() {
   if (!mounted) return <div className="p-6 text-sm text-gray-500">Memuat...</div>;
 
   return (
-    <div className="space-y-5">
-      {/* Hero */}
-      <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-orange-400 to-orange-500 p-5 text-gray-900 shadow-lg ring-1 ring-orange-500/30 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-900">
-              <Package className="h-3.5 w-3.5" /> Manajemen Produk & Inventory
-            </p>
-            <h1 className="mt-1 text-2xl font-black sm:text-3xl">Kelola Produk</h1>
-            <p className="mt-1 text-xs text-gray-800">
-              Override harga/promo, sesuaikan stok, dan pantau inventory toko.
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Link href="/admin/produk/baru"
-              className="flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-xs font-black text-orange-700 shadow-lg hover:scale-105 transition">
-              <Plus className="h-4 w-4" /> Tambah Produk
-            </Link>
-            <div className="rounded-2xl bg-white/50 px-5 py-3 text-center backdrop-blur">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-orange-900">Nilai Inventory</p>
-              <p className="text-2xl font-black text-gray-900">{formatRp(stats?.totalValue ?? 0)}</p>
-              <p className="text-[10px] text-gray-800">{stats?.totalStokUnits ?? 0} unit total</p>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div className="space-y-6">
+      {/* Header */}
+      <AdminPageHeader
+        title="Katalog Produk & Stok"
+        subtitle="Kelola ketersediaan produk, sesuaikan stok varian, dan atur diskon harga promo"
+        breadcrumbs={[{ label: "Catalog" }, { label: "Kelola Produk" }]}
+        actions={
+          <Link
+            href="/admin/produk/baru"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#FF6B1A] px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-[#E04E00] transition-colors"
+          >
+            <Plus className="h-4 w-4" /> Tambah Produk Baru
+          </Link>
+        }
+      />
 
-      {/* Stats */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Total Produk" value={stats?.total ?? 0} icon={Box} bg="bg-blue-500" onClick={() => setTab("all")} active={tab === "all"} />
-        <Stat label="Lagi Promo" value={stats?.promo ?? 0} icon={Tag} bg="bg-[#FF6B1A]" onClick={() => setTab("promo")} active={tab === "promo"} />
-        <Stat label="Stok Kritis" value={stats?.low ?? 0} icon={AlertCircle} bg="bg-amber-500" alert={(stats?.low ?? 0) > 0} onClick={() => setTab("low_stock")} active={tab === "low_stock"} />
-        <Stat label="Habis" value={stats?.out ?? 0} icon={AlertCircle} bg="bg-red-500" alert={(stats?.out ?? 0) > 0} onClick={() => setTab("out_of_stock")} active={tab === "out_of_stock"} />
+      {/* KPI Stats */}
+      <section className="grid grid-cols-2 gap-3.5 sm:gap-4 lg:grid-cols-4">
+        <AdminStatCard
+          label="Total Produk"
+          value={stats?.total ?? 0}
+          subtitle={`Nilai inventory: ${formatRp(stats?.totalValue ?? 0)}`}
+          icon={Box}
+          color="blue"
+          onClick={() => setTab("all")}
+        />
+        <AdminStatCard
+          label="Sedang Promo"
+          value={stats?.promo ?? 0}
+          subtitle="Produk dengan harga coret/diskon"
+          icon={Tag}
+          color="orange"
+          onClick={() => setTab("promo")}
+        />
+        <AdminStatCard
+          label="Stok Kritis"
+          value={stats?.low ?? 0}
+          subtitle="Tersisa 2 unit atau kurang"
+          icon={AlertCircle}
+          color="amber"
+          alert={(stats?.low ?? 0) > 0}
+          onClick={() => setTab("low_stock")}
+        />
+        <AdminStatCard
+          label="Stok Habis"
+          value={stats?.out ?? 0}
+          subtitle="Katalog non-aktif / kosong"
+          icon={AlertCircle}
+          color="rose"
+          alert={(stats?.out ?? 0) > 0}
+          onClick={() => setTab("out_of_stock")}
+        />
       </section>
 
       {/* Toolbar */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-xs space-y-3">
         <div className="grid gap-2 sm:grid-cols-[1fr_200px]">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Cari produk, jenis, ID..."
-              className="w-full rounded-full border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-4 text-xs outline-none focus:border-[#FF6B1A] focus:bg-white" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Cari nama produk, jenis helm, atau ID..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-2.5 pl-10 pr-4 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#FF6B1A] focus:bg-white focus:ring-3 focus:ring-orange-500/10"
+            />
           </div>
-          <select value={jenis} onChange={(e) => setJenis(e.target.value)}
-            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-900 outline-none focus:border-[#FF6B1A] focus:bg-white">
+          <select
+            value={jenis}
+            onChange={(e) => setJenis(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-xs font-bold text-slate-700 outline-none transition focus:border-[#FF6B1A] focus:bg-white cursor-pointer"
+          >
             <option value="">Semua Jenis</option>
             {jenisList.map((j) => <option key={j.value} value={j.value}>{j.label}</option>)}
           </select>
         </div>
-        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-gray-100 pt-3">
+
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
           {TABS.map((t) => {
             const active = tab === t.key;
             return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-black transition ${
-                  active ? "bg-[#FF6B1A] text-white shadow" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}>
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
+                  active
+                    ? "bg-[#FF6B1A] text-white shadow-xs"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200/80"
+                }`}
+              >
                 {t.label}
               </button>
             );
           })}
           {(stats?.overridden ?? 0) > 0 && (
-            <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black text-amber-700">
-              <Layers className="h-3 w-3" /> {stats?.overridden} produk override aktif
+            <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-[11px] font-bold text-amber-700">
+              <Layers className="h-3 w-3" /> {stats?.overridden} override aktif
             </span>
           )}
         </div>
-      </section>
+      </div>
 
       {/* Grid */}
       {items.length === 0 ? (

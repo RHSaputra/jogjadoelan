@@ -124,9 +124,8 @@ export function FileUploadField({
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md">
                   <Upload className="h-5 w-5" />
                 </div>
-                <p className="text-xs font-black">Pilih dari Galeri / File</p>
-                <p className="text-[10px] text-gray-400">atau geser file ke sini</p>
-                <p className="text-[9px] text-gray-400">JPG, PNG, WebP • max 15 MB</p>
+                <p className="text-xs font-bold text-slate-700">Pilih dari Galeri / File</p>
+                <p className="text-[10px] text-slate-400">Format PNG, JPG, WebP • Maks. 15 MB</p>
               </>
             )}
           </button>

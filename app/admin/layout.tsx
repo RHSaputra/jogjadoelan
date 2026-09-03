@@ -69,7 +69,7 @@ function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <AdminNotificationProvider>
-      <div className="admin-shell flex min-h-screen bg-[#F1F3F8]" data-admin-shell>
+      <div className="admin-shell flex min-h-screen bg-[#F8FAFC]" data-admin-shell>
         <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col">
           <AdminTopbar title={title} subtitle={subtitle} onMenuClick={() => setSidebarOpen(true)} />

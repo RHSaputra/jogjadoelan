@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useSearchParams } from "next/navigation";
@@ -445,13 +445,13 @@ function AdminChat({ userIdParam, customIdParam }: { userIdParam: string | null;
         </div>
         <div className="mt-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-gray-800">
           <span className={`inline-block h-2 w-2 rounded-full ${adminOnline ? "bg-green-500" : "bg-gray-400"}`} />
-          {adminOnline ? "Anda Online (jam kerja)" : "Di luar jam kerja â€” pesan masuk tetap diterima"}
+          {adminOnline ? "Anda Online (jam kerja)" : "Di luar jam kerja — pesan masuk tetap diterima"}
         </div>
       </section>
 
       {/* Split layout */}
       <section className="grid gap-4 lg:grid-cols-[360px_1fr]">
-        {/* SIDEBAR â€” list rooms */}
+        {/* SIDEBAR — list rooms */}
         <aside className={`flex h-[calc(100vh-220px)] min-h-[500px] flex-col rounded-2xl border border-gray-200 bg-white shadow-sm ${active ? "hidden lg:flex" : "flex"}`}>
           <div className="border-b border-gray-100 p-3">
             <div className="relative">
@@ -496,15 +496,15 @@ function AdminChat({ userIdParam, customIdParam }: { userIdParam: string | null;
           </div>
         </aside>
 
-        {/* MAIN â€” conversation */}
+        {/* MAIN — conversation */}
         <div className={`flex h-[calc(100vh-220px)] min-h-[500px] flex-col rounded-2xl border border-gray-200 bg-white shadow-sm ${active ? "flex" : "hidden lg:flex"}`}>
           {!active ? (
             <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-100">
                 <MessageCircle className="h-10 w-10 text-[#FF6B1A]" />
               </div>
-              <p className="mt-4 text-base font-black text-gray-900">Pilih percakapan</p>
-              <p className="mt-1 text-xs text-gray-500">Klik salah satu room di kiri untuk mulai membalas customer.</p>
+              <p className="mt-4 text-base font-bold text-slate-900">Pilih Percakapan</p>
+              <p className="mt-1 text-xs text-slate-500">Pilih percakapan untuk melihat riwayat dan membalas pesan pelanggan.</p>
             </div>
           ) : (
             <>
@@ -518,9 +518,9 @@ function AdminChat({ userIdParam, customIdParam }: { userIdParam: string | null;
                   <p className="truncate text-sm font-black text-gray-900">{active.userName}</p>
                   <p className="truncate text-[10px] text-gray-500">
                     {userTyping ? (
-                      <span className="font-bold text-orange-600 animate-pulse">sedang mengetikâ€¦</span>
+                      <span className="font-bold text-[#FF6B1A] animate-pulse">sedang mengetik...</span>
                     ) : (
-                      `${active.userEmail ?? active.userId} Â· ${active.totalMessages} pesan`
+                      `${active.userEmail ?? active.userId} · ${active.totalMessages} pesan`
                     )}
                   </p>
                 </div>
@@ -850,7 +850,7 @@ function AdminChat({ userIdParam, customIdParam }: { userIdParam: string | null;
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold text-gray-800 truncate">{item.nama}</p>
                           <p className="text-[9px] text-gray-500 mt-0.5">
-                            Variasi: {item.ukuran || "â€”"} Â· Qty: {item.qty}
+                            Variasi: {item.ukuran || "—"} · Qty: {item.qty}
                           </p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -882,7 +882,7 @@ function AdminChat({ userIdParam, customIdParam }: { userIdParam: string | null;
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-bold text-gray-800 truncate">{order.id}</p>
                               <p className="text-[9px] text-[#FF6B1A] font-black mt-0.5">
-                                {order.items[0]?.nama || "â€”"} ({order.items.length} item)
+                                {order.items[0]?.nama || "—"} ({order.items.length} item)
                               </p>
                             </div>
                             <ChevronRight className="h-4 w-4 text-gray-400" />
@@ -1125,7 +1125,7 @@ function MessageBubble({ msg, showDate, onPreview, onDelete }: {
             {isAdmin && msg.status === "read" && <CheckCheck className="h-3 w-3 text-blue-300" />}
           </div>
 
-          {/* delete menu â€” visible on hover */}
+          {/* delete menu — visible on hover */}
           <button onClick={onDelete}
             className={`absolute -top-2 ${isAdmin ? "-left-2" : "-right-2"} hidden h-6 w-6 items-center justify-center rounded-full bg-white text-red-500 shadow-md ring-1 ring-gray-200 hover:bg-red-50 group-hover:flex`}>
             <Trash2 className="h-3 w-3" />
@@ -1202,8 +1202,8 @@ function ValidationCard({ ctx }: { ctx?: ChatContext }) {
         <div className="min-w-0 flex-1 space-y-1">
           <p className="font-extrabold text-gray-900 leading-tight text-sm truncate">{v.productName}</p>
           <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-gray-500 pt-0.5">
-            <p><span className="font-medium text-gray-400">Variasi:</span> <span className="font-semibold text-gray-800">{v.variant || "â€”"}</span></p>
-            <p><span className="font-medium text-gray-400">Warna:</span> <span className="font-semibold text-gray-800">{v.color || "â€”"}</span></p>
+            <p><span className="font-medium text-gray-400">Variasi:</span> <span className="font-semibold text-gray-800">{v.variant || "—"}</span></p>
+            <p><span className="font-medium text-gray-400">Warna:</span> <span className="font-semibold text-gray-800">{v.color || "—"}</span></p>
             <p><span className="font-medium text-gray-400">Qty:</span> <span className="font-semibold text-gray-800">{v.qty}</span></p>
             <p><span className="font-medium text-gray-400">Order ID:</span> <span className="font-semibold text-gray-800">{v.orderId}</span></p>
           </div>

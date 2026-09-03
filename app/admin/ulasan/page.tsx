@@ -13,6 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { listUlasanAdmin, adminHideUlasan, adminBalasUlasan, type Ulasan } from "@/lib/ulasan-helpers";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { AdminStatCard } from "@/components/admin/ui/AdminStatCard";
+import { AdminCard } from "@/components/admin/ui/AdminCard";
 
 export default function AdminUlasanPage() {
   const [ulasanList, setUlasanList] = useState<Ulasan[]>([]);
@@ -60,83 +63,70 @@ export default function AdminUlasanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F3F8] p-4 md:p-8">
-      <div className="mx-auto max-w-6xl">
-        
-        {/* HEADER */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-black text-gray-900 sm:text-3xl">Kelola Ulasan</h1>
-          <p className="mt-1 text-sm font-medium text-gray-500">Pantau kepuasan pelanggan dan balas ulasan masuk.</p>
-        </div>
+    <div className="space-y-6">
+      {/* HEADER */}
+      <AdminPageHeader
+        title="Ulasan & Rating Produk"
+        subtitle="Pantau testimoni pelanggan, balas tanggapan pembeli, dan kelola reputasi toko"
+        breadcrumbs={[{ label: "Customer" }, { label: "Ulasan Produk" }]}
+      />
 
-        {/* STATISTIK CARDS */}
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <Card className="rounded-2xl border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                <Star className="h-6 w-6 text-orange-500" fill="currentColor" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Rata-rata Rating</p>
-                <p className="text-2xl font-black text-gray-900">{avgRating} <span className="text-sm text-gray-400">/ 5.0</span></p>
-              </div>
-            </div>
-          </Card>
-          <Card className="rounded-2xl border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                <MessageSquare className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Total Ulasan</p>
-                <p className="text-2xl font-black text-gray-900">{totalReviews}</p>
-              </div>
-            </div>
-          </Card>
-          <Card className="rounded-2xl border-gray-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                <ImageIcon className="h-6 w-6 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">Ulasan Berfoto</p>
-                <p className="text-2xl font-black text-gray-900">{totalWithMedia}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
+      {/* STATISTIK CARDS */}
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+        <AdminStatCard
+          label="Rata-rata Rating"
+          value={`${avgRating} / 5.0`}
+          subtitle="Skor akumulasi kepuasan"
+          icon={Star}
+          color="orange"
+        />
+        <AdminStatCard
+          label="Total Ulasan"
+          value={totalReviews}
+          subtitle="Feedback masuk dari customer"
+          icon={MessageSquare}
+          color="blue"
+        />
+        <AdminStatCard
+          label="Ulasan Berfoto / Video"
+          value={totalWithMedia}
+          subtitle="Testimoni dengan visual produk"
+          icon={ImageIcon}
+          color="emerald"
+        />
+      </div>
 
-        {/* TOOLBAR FILTER & SEARCH */}
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <Input 
-              placeholder="Cari produk atau isi ulasan..." 
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              className="h-11 w-full rounded-full border-2 border-gray-200 bg-white pl-10 pr-4 text-sm font-bold focus:border-orange-500 focus:ring-0"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-gray-400" />
-            <div className="flex rounded-full border-2 border-gray-200 bg-white p-1">
-              {["All", 5, 4, 3, 2, 1].map((rating) => (
-                <button
-                  key={rating}
-                  onClick={() => setFilterRating(rating as number | "All")}
-                  className={`flex items-center gap-1 rounded-full px-4 py-1.5 text-xs font-black transition-colors ${
-                    filterRating === rating 
-                      ? "bg-orange-500 text-white" 
-                      : "text-gray-500 hover:bg-gray-100"
-                  }`}
-                >
-                  {rating !== "All" && <Star className="h-3 w-3" fill={filterRating === rating ? "white" : "currentColor"} />}
-                  {rating}
-                </button>
-              ))}
-            </div>
+      {/* TOOLBAR FILTER & SEARCH */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input 
+            placeholder="Cari nama produk atau kata kunci ulasan..." 
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:border-[#FF6B1A] focus:bg-white focus:ring-0"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-slate-400" />
+          <div className="flex rounded-xl border border-slate-200 bg-slate-50/70 p-1">
+            {["All", 5, 4, 3, 2, 1].map((rating) => (
+              <button
+                key={rating}
+                onClick={() => setFilterRating(rating as number | "All")}
+                className={`flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-bold transition-all ${
+                  filterRating === rating 
+                    ? "bg-[#FF6B1A] text-white shadow-xs" 
+                    : "text-slate-600 hover:bg-slate-200/60"
+                }`}
+              >
+                {rating !== "All" && <Star className="h-3 w-3" fill={filterRating === rating ? "white" : "currentColor"} />}
+                {rating}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
         {/* LIST ULASAN (DESAIN MODERN 1-KOLOM + SISA WAKTU) */}
         <div className="space-y-4">
@@ -282,7 +272,6 @@ export default function AdminUlasanPage() {
             })
           )}
         </div>
-      </div>
 
       {/* MODAL BALAS */}
       {replyingTo && (

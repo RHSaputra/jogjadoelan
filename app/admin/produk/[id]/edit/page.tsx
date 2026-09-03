@@ -9,7 +9,8 @@ import {
   isCustomProductId, setProductOverride, clearProductOverride,
 } from "@/lib/admin-produk-helpers";
 import { ProdukForm, EMPTY_PRODUK, type ProdukFormValue } from "@/lib/produk-form-shared";
-import { PageHeader, FormActions, Button } from "@/components/admin/AdminFormComponents";
+import { FormActions, Button } from "@/components/admin/AdminFormComponents";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
 
 export default function EditProdukPage({ params }: { params: Promise<{ id: string }> }) {
@@ -118,31 +119,39 @@ export default function EditProdukPage({ params }: { params: Promise<{ id: strin
   );
 
   return (
-    <div className="space-y-5 pb-24">
-      <PageHeader
-        title={`Edit Produk`}
-        subtitle={isCustom ? "Produk tambahan admin" : "Produk default toko"}
+    <div className="space-y-6 pb-24">
+      <AdminPageHeader
+        title={`Edit Produk: ${v.nama || id}`}
+        subtitle={isCustom ? "Produk kustom toko (dibuat manual oleh admin)" : "Produk katalog utama (penyesuaian override)"}
+        breadcrumbs={[{ label: "Catalog", href: "/admin/produk" }, { label: "Edit Produk" }]}
         icon={Pencil}
-        variant="orange"
         actions={
-          <>
+          <div className="flex items-center gap-2">
             {!isCustom && (
-              <Button variant="ghost" size="sm" onClick={handleReset}
-                className="bg-white/15 text-white hover:bg-white/25">
-                <RotateCcw className="h-3.5 w-3.5" /> Reset
-              </Button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+              >
+                <RotateCcw className="h-3.5 w-3.5 text-slate-500" /> Reset Override
+              </button>
             )}
             {isCustom && (
-              <Button variant="danger" size="sm" onClick={handleDelete}
-                className="bg-red-500/80 text-white hover:bg-red-600">
-                <Trash2 className="h-3.5 w-3.5" /> Hapus
-              </Button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
+              >
+                <Trash2 className="h-3.5 w-3.5 text-rose-600" /> Hapus Produk
+              </button>
             )}
-            <Link href="/admin/produk"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-2 text-[11px] font-black text-white hover:bg-white/20">
-              <ArrowLeft className="h-3.5 w-3.5" /> Kembali
+            <Link
+              href="/admin/produk"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5 text-slate-500" /> Kembali
             </Link>
-          </>
+          </div>
         }
       />
 

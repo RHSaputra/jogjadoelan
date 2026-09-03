@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { ok, handler } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { mapCustomOrderToDTO } from "@/lib/api/custom-mapper";
-import type { customorder_status as CustomStatus } from "@prisma/client";
+import type { Prisma, customorder_status as CustomStatus } from "@prisma/client";
 
 export type AdminCustomTab =
   | "all" | "perlu_estimasi" | "verifikasi" | "diproses"
@@ -26,37 +26,42 @@ export const GET = handler(async (req: Request) => {
   await requireAdmin();
   const url = new URL(req.url);
   const tab = (url.searchParams.get("tab") ?? "all") as AdminCustomTab;
-  const q = (url.searchParams.get("q") ?? "").trim().toLowerCase();
+  const q = (url.searchParams.get("q") ?? "").trim();
+  const page = Math.max(1, parseInt(url.searchParams.get("page") ?? "1", 10));
+  const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") ?? "50", 10)));
 
-  const where: { status?: { in: CustomStatus[] } } = {};
+  const where: Prisma.customorderWhereInput = {};
   if (tab !== "all" && TAB_MAP[tab]?.length) where.status = { in: TAB_MAP[tab] };
-
-  const rows = await prisma.customorder.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { id: true, username: true, email: true } },
-      customprogress: { orderBy: { createdAt: "asc" } },
-      payment: { orderBy: { createdAt: "asc" } },
-    },
-  });
-
-  let orders = rows.map(mapCustomOrderToDTO);
   if (q) {
-    orders = orders.filter(
-      (o) =>
-        o.id.toLowerCase().includes(q) ||
-        o.jenis.toLowerCase().includes(q) ||
-        (o.notes ?? "").toLowerCase().includes(q),
-    );
+    where.OR = [
+      { id: { contains: q } },
+      { jenis: { contains: q } },
+      { notes: { contains: q } },
+      { user: { OR: [{ username: { contains: q } }, { email: { contains: q } }] } },
+    ];
   }
 
-  // stats: hitung dari SEMUA orders (bukan hasil filter), biar dashboard akurat
-  const allRows = q || tab !== "all"
-    ? await prisma.customorder.findMany({
-        select: { status: true, estimasi: true, hargaFinal: true },
-      })
-    : rows.map((r) => ({ status: r.status, estimasi: r.estimasi, hargaFinal: r.hargaFinal }));
+  const [rows, totalFiltered] = await Promise.all([
+    prisma.customorder.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+      include: {
+        user: { select: { id: true, username: true, email: true } },
+        customprogress: { orderBy: { createdAt: "asc" } },
+        payment: { orderBy: { createdAt: "asc" } },
+      },
+    }),
+    prisma.customorder.count({ where }),
+  ]);
+
+  const orders = rows.map(mapCustomOrderToDTO);
+
+  // stats: hitung dari SEMUA orders secara slim (hanya kolom metrik)
+  const allRows = await prisma.customorder.findMany({
+    select: { status: true, estimasi: true, hargaFinal: true },
+  });
 
   const counts: Record<AdminCustomTab, number> = {
     all: allRows.length, perlu_estimasi: 0, verifikasi: 0, diproses: 0,
@@ -73,5 +78,14 @@ export const GET = handler(async (req: Request) => {
     }
   }
 
-  return ok({ orders, stats: { counts, omzet } });
+  return ok({
+    orders,
+    stats: { counts, omzet },
+    pagination: {
+      page,
+      limit,
+      total: totalFiltered,
+      totalPages: Math.ceil(totalFiltered / limit),
+    },
+  });
 });

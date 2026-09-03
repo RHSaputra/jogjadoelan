@@ -1,10 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Settings } from "lucide-react";
 import { getFooterSettings, saveFooterSettings, FOOTER_SETTINGS_DEFAULT, type FooterSettings, type FooterLink } from "@/lib/footer-admin-helpers";
 import { PageHeader, Section, Input, Grid, Button, FormActions } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { AlignLeft } from "lucide-react";
 
 function GroupEditor({ title, links, onAdd, onUpdate, onDelete }: { title: string; links: FooterLink[]; onAdd: () => void; onUpdate: (idx: number, field: string, val: string) => void; onDelete: (idx: number) => void }) {
   return (
@@ -46,8 +49,15 @@ export default function FooterPage() {
   const deleteLink = (group: keyof FooterSettings["links"], idx: number) => { const newLinks = [...settings.links[group]]; newLinks.splice(idx, 1); updateGroup(group, newLinks); };
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="Pengaturan Footer" subtitle="Sesuaikan link, warna, dan teks footer customer" icon={Settings} variant="orange" />
+    <div className="space-y-6 pb-20">
+      <TokoSubnav />
+
+      <AdminPageHeader
+        title="Footer Toko"
+        subtitle="Kelola tautan navigasi, informasi bantuan, metode pembayaran, dan sosial media di footer"
+        breadcrumbs={[{ label: "Toko" }, { label: "Footer" }]}
+        icon={AlignLeft}
+      />
 
       <GroupEditor title="LAYANAN PELANGGAN" links={settings.links.layananPelanggan} onAdd={() => addLink("layananPelanggan")} onUpdate={(idx, f, v) => updateLink("layananPelanggan", idx, f as keyof FooterLink, v)} onDelete={(idx) => deleteLink("layananPelanggan", idx)} />
       <GroupEditor title="TENTANG KAMI" links={settings.links.tentangKami} onAdd={() => addLink("tentangKami")} onUpdate={(idx, f, v) => updateLink("tentangKami", idx, f as keyof FooterLink, v)} onDelete={(idx) => deleteLink("tentangKami", idx)} />

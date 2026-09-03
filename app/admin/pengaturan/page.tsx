@@ -6,6 +6,8 @@ import { FileUploadField } from "@/components/admin/FileUploadField";
 import { getTokoConfig, saveTokoConfig, TOKO_DEFAULT, type TokoConfig } from "@/lib/admin-toko-helpers";
 import { Section, Input, Textarea, Grid, PageHeader, Button, FormActions } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 import { isValidNoHp } from "@/lib/phone-utils";
 
 /* --- BIAYA PACKING SECTION --- */
@@ -95,12 +97,14 @@ export default function AdminPengaturanPage() {
   };
 
   return (
-    <div className="space-y-5 pb-24">
-      <PageHeader
-        title="Pengaturan Toko"
-        subtitle="Info dasar toko untuk footer, halaman about, dan kontak"
+    <div className="space-y-6 pb-24">
+      <TokoSubnav />
+
+      <AdminPageHeader
+        title="Pengaturan Umum Toko"
+        subtitle="Kelola identitas dasar toko, tagline, kontak WhatsApp/Instagram, jam operasional, dan biaya packing"
+        breadcrumbs={[{ label: "Toko" }, { label: "Pengaturan Umum" }]}
         icon={Settings}
-        variant="orange"
       />
 
       <Section

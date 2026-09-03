@@ -38,15 +38,15 @@ export function AdminTopbar({ title, subtitle, onMenuClick }: Props) {
   ].filter((n) => n.count > 0);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-orange-100 bg-white shadow-sm">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white shadow-xs">
       <div className="flex h-16 items-center gap-3 px-4 lg:px-6">
-        <button type="button" onClick={onMenuClick} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-orange-600 hover:bg-orange-50 lg:hidden">
+        <button type="button" onClick={onMenuClick} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 lg:hidden transition-colors">
           <Menu className="h-5 w-5" />
         </button>
 
         <div className="flex-1 min-w-0">
-          <h1 className="text-base font-black text-orange-600 sm:text-lg">{title}</h1>
-          {subtitle && <p className="text-[11px] text-gray-500">{subtitle}</p>}
+          <h1 className="text-base font-bold text-slate-900 sm:text-lg tracking-tight">{title}</h1>
+          {subtitle && <p className="text-[11px] text-slate-500">{subtitle}</p>}
         </div>
 
         {/* Search */}
@@ -59,12 +59,12 @@ export function AdminTopbar({ title, subtitle, onMenuClick }: Props) {
             <button
               type="button"
               onClick={() => { setOpenNotif(!openNotif); setOpenMenu(false); }}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-orange-600 hover:bg-orange-50 transition-colors"
-            aria-label={`Notifikasi (${counters.total} butuh aksi)`}
+              className="relative flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label={`Notifikasi (${counters.total} butuh aksi)`}
           >
             <Bell className="h-5 w-5" />
             {counters.total > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full border-2 border-white bg-[#FF6B1A] px-1.5 text-[10px] font-extrabold tabular-nums leading-none text-white shadow-md animate-pulse">
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-[18px] items-center justify-center rounded-full bg-[#FF6B1A] px-1 text-[10px] font-extrabold tabular-nums leading-none text-white shadow-sm ring-2 ring-white">
                 {counters.total > 99 ? "99+" : counters.total}
               </span>
             )}
@@ -74,16 +74,16 @@ export function AdminTopbar({ title, subtitle, onMenuClick }: Props) {
             <>
               <div className="fixed inset-0 z-30" onClick={() => setOpenNotif(false)} />
 
-              <div className="absolute right-0 top-full z-40 mt-2 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-4 duration-200 sm:w-80">
+              <div className="absolute right-0 top-full z-40 mt-2 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-4 duration-200 sm:w-80">
                 {/* Header */}
-                <div className="border-b border-gray-100 bg-gray-50/50 px-4 py-3 flex items-center justify-between">
-              <p className="text-sm font-black text-orange-600">Perlu Aksi Admin</p>
+                <div className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 flex items-center justify-between">
+                  <p className="text-xs font-bold text-slate-800">Perlu Aksi Admin</p>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                     counters.total > 0
-                      ? "bg-[#FF6B1A]/10 text-[#FF6B1A]"
-                      : "bg-green-100 text-green-700"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-emerald-100 text-emerald-800"
                   }`}>
-                    {counters.total > 0 ? `${counters.total} Item` : "Aman ✓"}
+                    {counters.total > 0 ? `${counters.total} Antrian` : "Aman ✓"}
                   </span>
                 </div>
 

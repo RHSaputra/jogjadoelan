@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { BarChart3, TrendingUp, Package, DollarSign, ShoppingBag, Calendar, FileSpreadsheet, FileText } from "lucide-react";
 import { getAllOrdersGlobal } from "@/lib/orders-storage";
 import { getEffectiveProducts, type EffectiveProduct } from "@/lib/admin-produk-helpers";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 
 type Period = "7d" | "30d" | "90d" | "all";
 
@@ -365,47 +366,56 @@ export default function AdminLaporanPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6 pb-20">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#fc970a] p-4 text-white shadow-lg">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="h-6 w-6" />
-          <div><p className="text-sm font-black">Laporan & Analytics</p><p className="text-[10px] opacity-80">Performa toko periode {PERIOD_LABEL[period]}</p></div>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex gap-1 rounded-full bg-white/10 p-1">
-            {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
-              <button key={p} onClick={() => setPeriod(p)}
-                className={`rounded-full px-3 py-1 text-[10px] font-black transition ${period === p ? "bg-[#FF6B1A] text-white" : "text-white/70 hover:text-white"}`}>
-                {PERIOD_LABEL[p]}
+      <AdminPageHeader
+        title="Laporan & Analitik Keuangan"
+        subtitle={`Performa pendapatan toko, status pesanan, dan produk terlaris periode ${PERIOD_LABEL[period]}`}
+        breadcrumbs={[{ label: "Laporan" }, { label: "Analitik" }]}
+        icon={BarChart3}
+        actions={
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
+              {(Object.keys(PERIOD_LABEL) as Period[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                    period === p
+                      ? "bg-[#FF6B1A] text-white shadow-xs font-bold"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {PERIOD_LABEL[p]}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportExcel}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition shadow-xs"
+              >
+                <FileSpreadsheet className="h-4 w-4" />
+                Excel
               </button>
-            ))}
+              <button
+                onClick={handleExportPDF}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shadow-xs"
+              >
+                <FileText className="h-4 w-4 text-rose-500" />
+                PDF
+              </button>
+            </div>
           </div>
-          <div className="flex gap-1.5">
-            <button
-              onClick={handleExportExcel}
-              className="flex items-center gap-1.5 rounded-full bg-emerald-600/90 hover:bg-emerald-600 px-3.5 py-1.5 text-[10px] font-black text-white shadow transition"
-            >
-              <FileSpreadsheet className="h-3.5 w-3.5" />
-              Excel
-            </button>
-            <button
-              onClick={handleExportPDF}
-              className="flex items-center gap-1.5 rounded-full bg-red-600/90 hover:bg-red-600 px-3.5 py-1.5 text-[10px] font-black text-white shadow transition"
-            >
-              <FileText className="h-3.5 w-3.5" />
-              PDF
-            </button>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KPI label="Omzet" value={`Rp ${data.omzet.toLocaleString("id-ID")}`} icon={DollarSign} bg="bg-emerald-500" />
-        <KPI label="Selesai" value={`Rp ${data.omzetSelesai.toLocaleString("id-ID")}`} icon={TrendingUp} bg="bg-blue-500" />
-        <KPI label="Total Order" value={data.totalOrders} icon={ShoppingBag} bg="bg-[#FF6B1A]" />
-        <KPI label="Avg Order" value={`Rp ${data.avgOrder.toLocaleString("id-ID")}`} icon={Package} bg="bg-violet-500" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KPI label="Total Omzet" value={`Rp ${data.omzet.toLocaleString("id-ID")}`} icon={DollarSign} theme="emerald" />
+        <KPI label="Omzet Selesai" value={`Rp ${data.omzetSelesai.toLocaleString("id-ID")}`} icon={TrendingUp} theme="sky" />
+        <KPI label="Total Order" value={data.totalOrders} icon={ShoppingBag} theme="orange" />
+        <KPI label="Rata-rata Order" value={`Rp ${data.avgOrder.toLocaleString("id-ID")}`} icon={Package} theme="purple" />
       </div>
 
       {/* Chart omzet harian */}
@@ -495,16 +505,23 @@ export default function AdminLaporanPage() {
   );
 }
 
-function KPI({ label, value, icon: Icon, bg }: { label: string; value: string | number; icon: typeof DollarSign; bg: string }) {
+function KPI({ label, value, icon: Icon, theme }: { label: string; value: string | number; icon: typeof DollarSign; theme: "emerald" | "sky" | "orange" | "purple" }) {
+  const themeStyles = {
+    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
+    sky: "bg-sky-50 text-sky-600 border-sky-100",
+    orange: "bg-orange-50 text-[#FF6B1A] border-orange-100",
+    purple: "bg-purple-50 text-purple-600 border-purple-100",
+  };
+
   return (
-    <div className="rounded-2xl border-2 border-gray-200 bg-white p-3 shadow-sm">
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
       <div className="flex items-start justify-between">
-        <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${bg} text-white shadow`}>
-          <Icon className="h-4 w-4" />
+        <div className={`flex h-10 w-10 items-center justify-center rounded-xl border ${themeStyles[theme]}`}>
+          <Icon className="h-5 w-5" />
         </div>
       </div>
-      <p className="mt-2 text-[10px] font-black uppercase text-gray-500">{label}</p>
-      <p className="text-base font-black text-gray-900">{value}</p>
+      <p className="mt-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">{label}</p>
+      <p className="mt-0.5 text-xl font-bold text-slate-900">{value}</p>
     </div>
   );
 }

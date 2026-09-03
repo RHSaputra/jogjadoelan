@@ -21,7 +21,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   const { id } = await ctx.params;
   const { action } = schema.parse(await req.json());
 
-  const o = await prisma.order.findUnique({ where: { id }, include: { orderitem: true } });
+  const o = await prisma.order.findUnique({ where: { id }, include: { orderitem: true, payment: true } });
   if (!o || o.userId !== me.id) return fail(404, "Pesanan tidak ditemukan");
 
   const now = new Date();
@@ -91,11 +91,24 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   }
 
   if (action === "delete") {
-    // Cek komplain aktif
+    // 1. Pesanan yang aktif atau sudah selesai tidak boleh dihapus
+    const protectedStatuses = ["MENUNGGU_PEMBAYARAN", "MENUNGGU_KONFIRMASI", "DIPROSES", "DIKIRIM", "SELESAI"];
+    if (protectedStatuses.includes(o.status)) {
+      return fail(400, "Pesanan yang sedang aktif atau sudah selesai tidak dapat dihapus demi kepatuhan audit dan riwayat finansial.");
+    }
+
+    // 2. Jika ada riwayat pembayaran (VERIFIED atau PENDING), tidak boleh dihapus
+    const hasFinancialRecord = o.payment?.some((p) => p.status === "VERIFIED" || p.status === "PENDING");
+    if (hasFinancialRecord) {
+      return fail(400, "Pesanan yang memiliki riwayat transaksi finansial tidak dapat dihapus demi kepatuhan audit.");
+    }
+
+    // 3. Cek komplain aktif
     const komplainAktif = await prisma.komplain.findFirst({
       where: { orderId: id, status: { notIn: ["BERHASIL", "DITOLAK", "DIBATALKAN"] } },
     });
     if (komplainAktif) return fail(400, "Masih ada komplain aktif pada pesanan ini");
+
     await prisma.order.delete({ where: { id } });
     return ok({ deleted: true });
   }

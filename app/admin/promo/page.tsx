@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Plus, Trash2, Tag, Edit3, X } from "lucide-react";
@@ -7,6 +7,9 @@ import { PROMO_DUMMY } from "@/lib/constants";
 import { getAdminPromos, saveAdminPromos } from "@/lib/admin-voucher-helpers";
 import { PageHeader, Input, Grid, Select, Button, EmptyState } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { AdminEmptyState } from "@/components/admin/ui/AdminEmptyState";
 
 const TIPE_OPTIONS = [{ v:"ongkir",l:"Gratis Ongkir" },{ v:"diskon",l:"Diskon" },{ v:"cashback",l:"Cashback" },{ v:"voucher",l:"Voucher" }] as const;
 const COLOR_OPTIONS = ["from-amber-500 to-orange-600","from-emerald-500 to-green-600","from-blue-500 to-cyan-600","from-violet-500 to-purple-600","from-red-500 to-pink-600","from-[#FF6B1A] to-[#FFD23F]"];
@@ -28,8 +31,36 @@ export default function AdminPromoPage() {
   const handleDelete = async (id: string) => { if(!confirm("Hapus promo ini?"))return; await persist(list.filter(p=>p.id!==id)); notifySuccess("Promo Dihapus"); };
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="Promo & Voucher" subtitle="Customer browse & klaim di halaman /promo" icon={Tag} variant="orange" actions={<><Button variant="ghost" size="sm" onClick={() => { if(confirm("Reset ke default?")){persist(PROMO_DUMMY);notifySuccess("Direset ke default");} }} className="bg-white/15 text-white hover:bg-white/25">Reset</Button><Button variant="primary" size="sm" icon={<Plus className="h-3.5 w-3.5"/>} onClick={()=>setEditing(emptyPromo())} className="bg-white text-[#FF6B1A] hover:bg-white/90">Tambah</Button></>} />
+    <div className="space-y-6 pb-20">
+      <AdminPageHeader
+        title="Voucher & Promo Toko"
+        subtitle="Kelola kode voucher diskon, gratis ongkir, cashback, dan atur periode promo"
+        breadcrumbs={[{ label: "Catalog" }, { label: "Voucher & Promo" }]}
+        icon={Tag}
+        actions={
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (confirm("Reset ke default?")) {
+                  persist(PROMO_DUMMY);
+                  notifySuccess("Direset ke default");
+                }
+              }}
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            >
+              Reset Default
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing(emptyPromo())}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B1A] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#E04E00] transition"
+            >
+              <Plus className="h-4 w-4" /> Buat Promo Baru
+            </button>
+          </div>
+        }
+      />
 
       {list.length===0 ? <EmptyState icon={Tag} title="Belum ada promo" description="Tambah promo pertama untuk customer" action={<Button variant="primary" size="md" icon={<Plus className="h-4 w-4"/>} onClick={()=>setEditing(emptyPromo())}>Tambah Promo</Button>} /> : (
         <div className="grid gap-3 md:grid-cols-2">

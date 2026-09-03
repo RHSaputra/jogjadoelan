@@ -442,7 +442,7 @@ export default function AdminCustomDetailPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-gray-400">Belum ada referensi desain. Klik tombol di atas untuk menambah.</p>
+              <p className="text-xs text-slate-500">Belum ada file referensi desain yang dilampirkan.</p>
             )}
           </Card>
 
@@ -877,8 +877,8 @@ export default function AdminCustomDetailPage() {
                       onChange={(e) => onProgressFile(e.target.files?.[0] ?? null)} />
                     <div className="text-center">
                       <Upload className="mx-auto h-6 w-6 text-gray-400" />
-                      <p className="mt-1 text-[10px] font-bold text-gray-500">
-                        {progressUploading ? "Mengompres..." : "Klik untuk pilih foto"}
+                      <p className="mt-1 text-xs font-semibold text-slate-600">
+                        {progressUploading ? "Mengompres..." : "Pilih Foto Progres"}
                       </p>
                       <p className="text-[9px] text-gray-400">PNG / JPG / WEBP · maks 5MB</p>
                     </div>

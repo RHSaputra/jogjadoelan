@@ -5,6 +5,9 @@ import { Wrench, Plus, Trash2 } from "lucide-react";
 import { getOperasionalAsync, saveOperasionalAsync, OPERASIONAL_DEFAULT, type OperasionalConfig, type LiburItem } from "@/lib/admin-toko-master-helpers";
 import { PageHeader, Section, Input, Textarea, Grid, Button, FormActions } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { Clock } from "lucide-react";
 
 export default function OperasionalPage() {
   const [c, setC] = useState<OperasionalConfig>(OPERASIONAL_DEFAULT);
@@ -20,8 +23,15 @@ export default function OperasionalPage() {
   const delLibur = (i: number) => upd({ libur: c.libur.filter((_, idx) => idx !== i) });
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="Operasional & Libur" subtitle="Maintenance mode, jadwal libur, batas order" icon={Wrench} variant="orange" />
+    <div className="space-y-6 pb-20">
+      <TokoSubnav />
+
+      <AdminPageHeader
+        title="Operasional & Libur"
+        subtitle="Kelola mode maintenance toko, jadwal tanggal libur, dan pembatasan pemesanan"
+        breadcrumbs={[{ label: "Toko" }, { label: "Operasional & Libur" }]}
+        icon={Clock}
+      />
 
       <Section title="Maintenance Mode" subtitle="Aktifkan saat toko sedang maintenance" icon={<Wrench className="h-4 w-4" />}>
         <div className="flex items-center justify-between rounded-xl border-2 border-amber-200 bg-amber-50 px-4 py-3">

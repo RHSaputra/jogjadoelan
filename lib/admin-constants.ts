@@ -4,6 +4,7 @@ import {
   ShoppingBag, Receipt, FileCheck, AlertCircle, RotateCcw, Star,
   Users, Landmark, Truck, Tag, Megaphone, BarChart3, Settings,
   Wrench, UserCircle, Lock, LogOut, TrendingUp, Palette,
+  Bell, Shield,
 } from "lucide-react";
 
 // === HARDCODED ADMIN CREDENTIALS (MOCK) ===
@@ -54,58 +55,64 @@ export interface MenuSection {
 
 export const ADMIN_MENU: MenuSection[] = [
   {
-    title: "UTAMA",
+    title: "OVERVIEW",
     items: [
       { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-      { label: "Room Chat", href: "/admin/chat", icon: MessageCircle, badgeKey: "chat" },
-    ],
-  },
-  {
-    title: "KELOLA TOKO",
-    items: [
-      { label: "Halaman Utama", href: "/admin/toko/landing", icon: LayoutDashboard },
-      { label: "Informasi & Lokasi Toko", href: "/admin/toko/cabang", icon: Store },
-      { label: "FAQ", href: "/admin/toko/faq", icon: AlertCircle },
-      { label: "Operasional & Libur", href: "/admin/toko/operasional", icon: Wrench },
-      { label: "Footer Customizer", href: "/admin/toko/footer", icon: Settings },
-      { label: "Form Custom Helm", href: "/admin/toko/custom", icon: Palette },
-    ],
-  },
-  {
-    title: "PRODUK & PROMO",
-    items: [
-      { label: "Kelola Produk", href: "/admin/produk", icon: Package, badgeKey: "stok" },
-      { label: "Promo & Voucher", href: "/admin/promo", icon: Tag },
-      { label: "Pelanggan", href: "/admin/pelanggan", icon: Users },
-    ],
-  },
-   {
-    title: "PENJUALAN",
-    items: [
-      { label: "Penjualan Saya", href: "/admin/penjualan", icon: ShoppingBag, badgeKey: "penjualan" },
-      { label: "Validasi Bukti", href: "/admin/validasi-bukti", icon: FileCheck, badgeKey: "validasi" },
-      { label: "Transaksi", href: "/admin/transaksi", icon: Receipt },
-      { label: "Custom Order", href: "/admin/custom", icon: Wrench, badgeKey: "custom" },
-      { label: "Komplain", href: "/admin/komplain", icon: AlertCircle, badgeKey: "komplain" },
-      { label: "Return", href: "/admin/return", icon: RotateCcw, badgeKey: "return" },
-      { label: "Ulasan", href: "/admin/ulasan", icon: Star, badgeKey: "ulasan" },
-    ],
-  },
-   {
-    title: "OPERASIONAL",
-    items: [
-      { label: "Bank & Rekening", href: "/admin/bank", icon: Landmark },
-      { label: "Ekspedisi", href: "/admin/ekspedisi", icon: Truck },
-      { label: "Broadcast Notif", href: "/admin/broadcast", icon: Megaphone },
-      { label: "Laporan", href: "/admin/laporan", icon: BarChart3 },
       { label: "Transaction Intelligence", href: "/admin/audit", icon: TrendingUp },
     ],
   },
   {
-    title: "AKUN",
+    title: "SALES",
     items: [
-      { label: "Edit Akun", href: "/admin/akun/edit", icon: UserCircle },
-      { label: "Ganti Password", href: "/admin/akun/password", icon: Lock },
+      { label: "Pesanan", href: "/admin/penjualan", icon: ShoppingBag, badgeKey: "penjualan" },
+      { label: "Custom Order", href: "/admin/custom", icon: Wrench, badgeKey: "custom" },
+      { label: "Validasi Pembayaran", href: "/admin/validasi-bukti", icon: FileCheck, badgeKey: "validasi" },
+      { label: "Riwayat Transaksi", href: "/admin/transaksi", icon: Receipt },
+      { label: "Pengiriman & Ekspedisi", href: "/admin/ekspedisi", icon: Truck },
+    ],
+  },
+  {
+    title: "CATALOG",
+    items: [
+      { label: "Kelola Produk", href: "/admin/produk", icon: Package, badgeKey: "stok" },
+      { label: "Voucher & Promo", href: "/admin/promo", icon: Tag },
+    ],
+  },
+  {
+    title: "CUSTOMER",
+    items: [
+      { label: "Data Pelanggan", href: "/admin/pelanggan", icon: Users },
+      { label: "Ulasan Produk", href: "/admin/ulasan", icon: Star, badgeKey: "ulasan" },
+      { label: "Room Chat", href: "/admin/chat", icon: MessageCircle, badgeKey: "chat" },
+    ],
+  },
+  {
+    title: "AFTER SALES",
+    items: [
+      { label: "Komplain", href: "/admin/komplain", icon: AlertCircle, badgeKey: "komplain" },
+      { label: "Return & Tukar", href: "/admin/return", icon: RotateCcw, badgeKey: "return" },
+    ],
+  },
+  {
+    title: "COMMUNICATION",
+    items: [
+      { label: "Pusat Notifikasi", href: "/admin/notifikasi", icon: Bell },
+      { label: "Broadcast WhatsApp", href: "/admin/broadcast", icon: Megaphone },
+    ],
+  },
+  {
+    title: "REPORTS",
+    items: [
+      { label: "Laporan Keuangan", href: "/admin/laporan", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "SYSTEM",
+    items: [
+      { label: "Bank & QRIS", href: "/admin/bank", icon: Landmark },
+      { label: "Pengaturan Toko", href: "/admin/toko/landing", icon: Store },
+      { label: "Profil Admin", href: "/admin/akun/edit", icon: UserCircle },
+      { label: "Activity Log", href: "/admin/audit?tab=activity", icon: Shield },
       { label: "Logout", href: "/admin/logout", icon: LogOut },
     ],
   },

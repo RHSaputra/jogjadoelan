@@ -19,9 +19,15 @@ function parseDbUrl(url: string) {
   // Serverless functions di Vercel harus menggunakan connection limit kecil (e.g. 2-5)
   // untuk mencegah habisnya slot koneksi database (database connection limit exhaustion).
   const defaultLimit = isProd ? 3 : 10;
-  const limit = process.env.DATABASE_CONNECTION_LIMIT 
+  const rawLimit = process.env.DATABASE_CONNECTION_LIMIT 
     ? Number(process.env.DATABASE_CONNECTION_LIMIT) 
     : defaultLimit;
+  const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(20, rawLimit)) : defaultLimit;
+
+  // Cloud database (seperti TiDB Cloud Serverless / Aiven) mewajibkan koneksi TLS/SSL
+  const isRemote = u.hostname !== "localhost" && u.hostname !== "127.0.0.1";
+  const sslParam = u.searchParams.get("ssl") || u.searchParams.get("sslaccept");
+  const useSsl = isRemote || Boolean(sslParam);
 
   return {
     host: u.hostname,
@@ -30,6 +36,7 @@ function parseDbUrl(url: string) {
     password: u.password ? decodeURIComponent(u.password) : undefined,
     database: u.pathname.replace(/^\//, ""),
     connectionLimit: limit,
+    ssl: useSsl ? { rejectUnauthorized: false } : undefined,
   };
 }
 
@@ -50,6 +57,5 @@ function createPrismaClient(): PrismaClient {
 
 export const prisma = global.__PRISMA__ ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-  global.__PRISMA__ = prisma;
-}
+// Persist singleton on globalThis to guarantee connection pool reuse across warm executions
+global.__PRISMA__ = prisma;

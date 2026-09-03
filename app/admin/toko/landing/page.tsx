@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { LayoutDashboard, Plus, Trash2, Eye, EyeOff, ChevronDown, Settings2, ImageIcon, Star, MapPin, Share2 } from "lucide-react";
@@ -6,6 +6,9 @@ import { getLandingAsync, saveLandingAsync, LANDING_DEFAULT, type LandingConfig,
 import { FileUploadField } from "@/components/admin/FileUploadField";
 import { PageHeader, Section, Input, Textarea, Grid, Button, FormActions } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 
 const SECTION_META: Record<string, { label: string; desc: string; icon: React.ReactNode }> = {
   kategori: { label: "Kategori Produk", desc: "2 kartu: Ready Stock & Custom", icon: <Settings2 className="h-4 w-4" /> },
@@ -43,43 +46,63 @@ export default function LandingCMSPage() {
   const delSlide = (i: number) => upd({ heroSlides: c.heroSlides.filter((_, idx) => idx !== i) });
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="Halaman Utama" subtitle="Atur tampilan halaman utama toko â€” slider, section, pengumuman, popup" icon={LayoutDashboard} variant="gradient" />
+    <div className="space-y-6 pb-20">
+      <TokoSubnav />
 
-      <Section title={`Slider Hero (${c.heroSlides.length} slide)`} subtitle="Gambar & teks yang muncul paling atas halaman utama" icon={<ImageIcon className="h-4 w-4" />}>
-        {c.heroSlides.length === 0 && <div className="rounded-xl border-2 border-dashed border-gray-200 py-6 text-center"><ImageIcon className="mx-auto mb-2 h-8 w-8 text-gray-300" /><p className="text-xs text-gray-400">Belum ada slide. Klik <strong>Tambah Slide</strong> di bawah.</p></div>}
+      <AdminPageHeader
+        title="Beranda Toko (Landing CMS)"
+        subtitle="Kelola banner slider hero, urutan section, dan konten promosi halaman utama toko"
+        breadcrumbs={[{ label: "Toko" }, { label: "Beranda Toko" }]}
+        icon={LayoutDashboard}
+      />
+
+      <Section title={`Slider Hero (${c.heroSlides.length} slide)`} subtitle="Gambar dan teks promosi yang tampil di paling atas halaman utama" icon={<ImageIcon className="h-4 w-4" />}>
+        {c.heroSlides.length === 0 && (
+          <div className="rounded-xl border-2 border-dashed border-slate-200 py-6 text-center">
+            <ImageIcon className="mx-auto mb-2 h-8 w-8 text-slate-300" />
+            <p className="text-xs text-slate-500">Belum ada slide hero aktif.</p>
+          </div>
+        )}
         <div className="space-y-3">
           {c.heroSlides.map((s, i) => {
             const open = isSlideOpen(s.id) || false;
             return (
-              <div key={s.id} className={`rounded-xl border-2 transition ${s.aktif ? "border-gray-200 bg-gray-50" : "border-red-200 bg-red-50/30"}`}>
-                <button type="button" onClick={() => toggleSlideOpen(s.id)} className="flex w-full items-center justify-between gap-3 p-3 text-left">
-                  <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><span className={`rounded-full px-2 py-1 text-[9px] font-black ${s.aktif ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}`}>{s.aktif ? "Tampil" : "Disembunyikan"}</span><span className="text-sm font-black text-gray-900 truncate">{s.title || `Slide ${i+1}`}</span></div><p className="mt-1 text-[9px] text-gray-500 truncate">{s.subtitle || "Klik untuk lihat detail"}</p></div>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
+              <div key={s.id} className={`rounded-xl border transition ${s.aktif ? "border-slate-200 bg-slate-50/50" : "border-rose-200 bg-rose-50/30"}`}>
+                <button type="button" onClick={() => toggleSlideOpen(s.id)} className="flex w-full items-center justify-between gap-3 p-3.5 text-left">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${s.aktif ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}>
+                        {s.aktif ? "Tampil" : "Disembunyikan"}
+                      </span>
+                      <span className="text-sm font-bold text-slate-900 truncate">{s.title || `Slide ${i+1}`}</span>
+                    </div>
+                    {s.subtitle && <p className="mt-0.5 text-xs text-slate-500 truncate">{s.subtitle}</p>}
+                  </div>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : "rotate-0"}`} />
                 </button>
                 {open && (
-                  <div className="border-t border-gray-100 p-3 space-y-3">
+                  <div className="border-t border-slate-100 p-4 space-y-3 bg-white rounded-b-xl">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => updSlide(i, { aktif: !s.aktif })}>{s.aktif ? <><Eye className="h-3 w-3"/> Tampil</> : <><EyeOff className="h-3 w-3"/> Sembunyi</>}</Button>
-                        <Button variant="danger" size="sm" icon={<Trash2 className="h-3 w-3"/>} onClick={() => delSlide(i)}>Hapus</Button>
+                      <div className="flex gap-1.5">
+                        <Button variant="ghost" size="sm" onClick={() => updSlide(i, { aktif: !s.aktif })}>{s.aktif ? <><Eye className="h-3.5 w-3.5"/> Tampil</> : <><EyeOff className="h-3.5 w-3.5"/> Sembunyi</>}</Button>
+                        <Button variant="danger" size="sm" icon={<Trash2 className="h-3.5 w-3.5"/>} onClick={() => delSlide(i)}>Hapus</Button>
                       </div>
                     </div>
                     <Input label="Judul Utama" value={s.title} onChange={(e) => updSlide(i, { title: e.target.value })} />
                     <Textarea label="Teks Pendukung" value={s.subtitle} onChange={(e) => updSlide(i, { subtitle: e.target.value })} rows={2} />
                     <Grid cols={2}><Input label="Teks Tombol" value={s.cta} onChange={(e) => updSlide(i, { cta: e.target.value })} /><Input label="Link Tombol" value={s.ctaLink} onChange={(e) => updSlide(i, { ctaLink: e.target.value })} placeholder="/belanja" /></Grid>
-                    <FileUploadField label="Gambar Produk (depan)" hint="Tempel link dari Google Drive, Cloudinary, dll." value={s.image} onChange={(v) => updSlide(i, { image: v })} aspect="square" />
-                    <FileUploadField label="Gambar Latar (background)" hint="Boleh dikosongkan" value={s.bgImage} onChange={(v) => updSlide(i, { bgImage: v })} aspect="landscape" />
+                    <FileUploadField label="Gambar Produk (depan)" hint="Tempel link gambar atau unggah file" value={s.image} onChange={(v) => updSlide(i, { image: v })} aspect="square" />
+                    <FileUploadField label="Gambar Latar (background)" hint="Format gambar latar lanskap" value={s.bgImage} onChange={(v) => updSlide(i, { bgImage: v })} aspect="landscape" />
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-        <Button variant="ghost" size="sm" icon={<Plus className="h-3.5 w-3.5"/>} onClick={addSlide} className="w-full border-2 border-dashed border-gray-200 hover:border-[#FF6B1A] hover:text-[#FF6B1A] py-2.5">Tambah Slide Baru</Button>
+        <Button variant="ghost" size="sm" icon={<Plus className="h-3.5 w-3.5"/>} onClick={addSlide} className="w-full border border-dashed border-slate-300 hover:border-[#FF6B1A] hover:text-[#FF6B1A] py-2.5">Tambah Slide Baru</Button>
       </Section>
 
-      <Section title="Section Halaman Utama" subtitle="Pilih section di kiri untuk mengedit kontennya" icon={<LayoutDashboard className="h-4 w-4" />}>
+      <Section title="Section Halaman Utama" subtitle="Kelola visibilitas dan konten section halaman utama" icon={<LayoutDashboard className="h-4 w-4" />}>
         <div className="flex flex-col md:flex-row gap-5 items-start">
           <div className="w-full md:w-1/3 flex flex-col gap-2">
             {SECTION_KEYS.map(key => {
@@ -222,7 +245,7 @@ export default function LandingCMSPage() {
                   {/* ===== INFO TOKO (LOKASI & JAM BUKA) ===== */}
                   {key === "infoToko" && (
                     <>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-500">Lokasi & Jam Buka â€” Header & Label</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Lokasi & Jam Buka — Header & Label</p>
                       <Grid cols={2}>
                         <Input label="Header Eyebrow" value={c.infoToko.header.eyebrow} onChange={(e) => upd({ infoToko: { ...c.infoToko, header: { ...c.infoToko.header, eyebrow: e.target.value } } })} />
                         <Input label="Header Title" value={c.infoToko.header.title} onChange={(e) => upd({ infoToko: { ...c.infoToko, header: { ...c.infoToko.header, title: e.target.value } } })} />
@@ -233,7 +256,7 @@ export default function LandingCMSPage() {
                       </Grid>
                       <Textarea label="Header Subtitle" value={c.infoToko.header.subtitle} onChange={(e) => upd({ infoToko: { ...c.infoToko, header: { ...c.infoToko.header, subtitle: e.target.value } } })} rows={3} />
 
-                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-500 pt-2">Label & Pengaturan Kartu</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 pt-2">Label & Pengaturan Kartu</p>
                       <Grid cols={2}>
                         <Input label="Label Alamat" value={c.infoToko.labelAlamat} onChange={(e) => upd({ infoToko: { ...c.infoToko, labelAlamat: e.target.value } })} />
                         <Input label="Label Jam Buka" value={c.infoToko.labelJam} onChange={(e) => upd({ infoToko: { ...c.infoToko, labelJam: e.target.value } })} />
@@ -250,7 +273,7 @@ export default function LandingCMSPage() {
                   {/* ===== FOLLOW SOSMED ===== */}
                   {key === "follow" && (
                     <>
-                      <p className="text-[10px] font-black uppercase tracking-wider text-gray-500">Follow Sosmed â€” Header</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Follow Sosmed — Header</p>
                       <Grid cols={2}>
                         <Input label="Header Eyebrow" value={c.follow.header.eyebrow} onChange={(e) => upd({ follow: { ...c.follow, header: { ...c.follow.header, eyebrow: e.target.value } } })} />
                         <Input label="Header Title" value={c.follow.header.title} onChange={(e) => upd({ follow: { ...c.follow, header: { ...c.follow.header, title: e.target.value } } })} />

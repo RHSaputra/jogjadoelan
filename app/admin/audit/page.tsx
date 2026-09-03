@@ -12,13 +12,14 @@ import {
   RotateCcw, AlertCircle, CheckCircle, XCircle, Clock,
   FileSpreadsheet, FileText, Search, Filter,
   BarChart2, Layers, Shield, ChevronLeft, ChevronRight,
-  Users, Star, ArrowUpRight, ArrowDownRight, Minus, Trash2
+  Users, Star, Trash2
 } from "lucide-react";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
   CartesianGrid, Tooltip,
 } from "recharts";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 
 // ─── HELPERS ─────────────────────────────────────────────────────
 const IDR = (n: number) =>
@@ -92,30 +93,21 @@ interface StatCardProps {
   sub?: string;
   icon: React.ReactNode;
   accent: string;
-  trend?: "up" | "down" | "neutral";
 }
 
-function StatCard({ title, value, sub, icon, accent, trend }: StatCardProps) {
+function StatCard({ title, value, sub, icon, accent }: StatCardProps) {
   return (
-    <div
-      className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200"
-      style={{ borderLeftWidth: 4, borderLeftColor: accent }}
-    >
+    <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-all duration-200">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-0">
         <div className="flex-shrink-0 w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center sm:ml-3 sm:order-2" style={{ backgroundColor: accent + "18" }}>
           <span style={{ color: accent }} className="scale-[0.8] sm:scale-100">{icon}</span>
         </div>
         <div className="flex-1 min-w-0 sm:order-1 w-full">
-          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400 mb-0.5 sm:mb-1 truncate pr-4 sm:pr-0">{title}</p>
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-400 mb-0.5 sm:mb-1 truncate">{title}</p>
           <p className="text-base sm:text-xl font-bold text-gray-900 truncate">{value}</p>
           {sub && <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 line-clamp-2 sm:line-clamp-1">{sub}</p>}
         </div>
       </div>
-      {trend && (
-        <div className={`absolute top-3 sm:top-4 right-3 sm:right-4 flex items-center gap-0.5 text-[10px] sm:text-xs font-medium ${trend === "up" ? "text-emerald-500" : trend === "down" ? "text-red-500" : "text-gray-400"}`}>
-          {trend === "up" ? <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : trend === "down" ? <ArrowDownRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
-        </div>
-      )}
     </div>
   );
 }
@@ -152,50 +144,53 @@ export default function TransactionIntelligencePage() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(135deg, #F8FAFF 0%, #F1F3F8 100%)" }}>
-      <div className="px-2 pb-4">
-        {/* Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #fc970a, #e08a00)" }}>
-                <TrendingUp className="h-4 w-4 text-white" />
-              </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">Transaction Intelligence Center</h1>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-500 pl-10">Pusat monitoring &amp; audit seluruh arus keuangan sistem</p>
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">Dari</label>
+    <div className="space-y-6 pb-12 font-sans text-slate-800">
+      {/* Header */}
+      <AdminPageHeader
+        title="Transaction Intelligence Center"
+        subtitle="Pusat monitoring analitik keuangan, rasio profitabilitas, dan audit integritas arus transaksi"
+        breadcrumbs={[{ label: "Sistem" }, { label: "Transaction Intelligence" }]}
+        icon={TrendingUp}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-xs text-xs">
+              <span className="text-slate-500 font-medium">Dari:</span>
               <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-300 shadow-sm" />
+                className="text-xs text-slate-800 bg-transparent focus:outline-none" />
             </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-semibold text-gray-500">Sampai</label>
+            <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-xs text-xs">
+              <span className="text-slate-500 font-medium">Sampai:</span>
               <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
-                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-300 shadow-sm" />
+                className="text-xs text-slate-800 bg-transparent focus:outline-none" />
             </div>
             {(from || to) && (
-              <button onClick={() => { setFrom(""); setTo(""); }} className="text-xs text-red-500 hover:text-red-700 underline pb-2">Reset</button>
+              <button onClick={() => { setFrom(""); setTo(""); }} className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition">
+                Reset
+              </button>
             )}
           </div>
-        </div>
+        }
+      />
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-white rounded-2xl p-1 shadow-sm border border-gray-100 w-full overflow-x-auto">
-          {tabs.map((t) => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 flex-1 justify-center ${activeTab === t.id ? "text-white shadow-md" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`}
-              style={activeTab === t.id ? { background: "linear-gradient(135deg, #fc970a, #e08a00)" } : {}}>
-              {t.icon}
-              <span className="hidden sm:inline">{t.label}</span>
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div className="flex items-center gap-1.5 border-b border-slate-200/80 pb-2 overflow-x-auto no-scrollbar">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 ${
+              activeTab === t.id
+                ? "bg-[#FF6B1A] text-white shadow-xs font-bold"
+                : "text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200"
+            }`}
+          >
+            {t.icon}
+            <span>{t.label}</span>
+          </button>
+        ))}
       </div>
 
-      <div className="px-2">
+      <div>
         {activeTab === "dashboard"    && <DashboardTab from={from} to={to} />}
         {activeTab === "transactions" && <TransactionsTab from={from} to={to} />}
         {activeTab === "laporan"      && <LaporanTab from={from} to={to} />}
@@ -251,16 +246,16 @@ function DashboardTab({ from, to }: { from: string; to: string }) {
   const { orders, financials, ratios } = summary;
 
   const statCards: StatCardProps[] = [
-    { title: "Total Transaksi",  value: orders.total.toLocaleString("id-ID"),       sub: "Semua status",               icon: <ShoppingBag className="h-5 w-5" />, accent: "#6366f1", trend: "neutral" },
-    { title: "Order Selesai",    value: orders.selesai.toLocaleString("id-ID"),     sub: "Completed orders",           icon: <CheckCircle className="h-5 w-5" />, accent: "#10b981", trend: "up" },
-    { title: "Order Pending",    value: orders.pending.toLocaleString("id-ID"),     sub: "Menunggu pembayaran/konfirm", icon: <Clock className="h-5 w-5" />,       accent: "#f59e0b", trend: "neutral" },
-    { title: "Order Dibatalkan", value: orders.dibatalkan.toLocaleString("id-ID"),  sub: `Ratio: ${PCT(ratios.cancellationRatio)}`, icon: <XCircle className="h-5 w-5" />, accent: "#ef4444", trend: "down" },
-    { title: "Total Refund",     value: `${financials.totalRefundCount} order`,     sub: IDR(financials.totalRefundAmount), icon: <RotateCcw className="h-5 w-5" />, accent: "#a855f7", trend: "neutral" },
-    { title: "Gross Revenue",    value: IDR(financials.grossRevenue),               sub: "Total pemasukan bruto",      icon: <DollarSign className="h-5 w-5" />,  accent: "#fc970a", trend: "up" },
-    { title: "Net Revenue",      value: IDR(financials.netRevenue),                 sub: "Revenue - Refund",           icon: <TrendingUp className="h-5 w-5" />,  accent: "#0ea5e9", trend: "up" },
-    { title: "Gross Profit",     value: IDR(financials.grossProfit),                sub: "Revenue - Ongkir - Packing", icon: <BarChart2 className="h-5 w-5" />,   accent: "#22c55e", trend: "up" },
-    { title: "Net Profit",       value: IDR(financials.netProfit),                  sub: "Gross Profit - Refund",      icon: <Star className="h-5 w-5" />,        accent: "#f97316", trend: financials.netProfit > 0 ? "up" : "down" },
-    { title: "Profit Margin",    value: PCT(ratios.profitMargin),                   sub: "(Net Profit / Revenue) × 100", icon: <TrendingUp className="h-5 w-5" />, accent: "#8b5cf6", trend: ratios.profitMargin > 20 ? "up" : ratios.profitMargin < 5 ? "down" : "neutral" },
+    { title: "Total Transaksi",  value: orders.total.toLocaleString("id-ID"),       sub: "Semua status",               icon: <ShoppingBag className="h-5 w-5" />, accent: "#475569" },
+    { title: "Order Selesai",    value: orders.selesai.toLocaleString("id-ID"),     sub: "Completed orders",           icon: <CheckCircle className="h-5 w-5" />, accent: "#10b981" },
+    { title: "Order Pending",    value: orders.pending.toLocaleString("id-ID"),     sub: "Menunggu pembayaran/konfirm", icon: <Clock className="h-5 w-5" />,       accent: "#f59e0b" },
+    { title: "Order Dibatalkan", value: orders.dibatalkan.toLocaleString("id-ID"),  sub: `Ratio: ${PCT(ratios.cancellationRatio)}`, icon: <XCircle className="h-5 w-5" />, accent: "#f43f5e" },
+    { title: "Total Refund",     value: `${financials.totalRefundCount} order`,     sub: IDR(financials.totalRefundAmount), icon: <RotateCcw className="h-5 w-5" />, accent: "#f43f5e" },
+    { title: "Gross Revenue",    value: IDR(financials.grossRevenue),               sub: "Total pemasukan bruto",      icon: <DollarSign className="h-5 w-5" />,  accent: "#10b981" },
+    { title: "Net Revenue",      value: IDR(financials.netRevenue),                 sub: "Revenue - Refund",           icon: <TrendingUp className="h-5 w-5" />,  accent: "#10b981" },
+    { title: "Gross Profit",     value: IDR(financials.grossProfit),                sub: "Revenue - Ongkir - Packing", icon: <BarChart2 className="h-5 w-5" />,   accent: "#0ea5e9" },
+    { title: "Net Profit",       value: IDR(financials.netProfit),                  sub: "Gross Profit - Refund",      icon: <TrendingUp className="h-5 w-5" />,  accent: "#FF6B1A" },
+    { title: "Profit Margin",    value: PCT(ratios.profitMargin),                   sub: "(Net Profit / Revenue) × 100", icon: <TrendingUp className="h-5 w-5" />, accent: "#FF6B1A" },
   ];
 
   const chartData = trend.map((p) => ({
@@ -661,9 +656,9 @@ function TransactionsTab({ from: globalFrom, to: globalTo }: { from: string; to:
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)" }}>
+              <tr className="border-b border-slate-200 bg-slate-50/80">
                 {["#", "Invoice", "Customer", "Tanggal", "Jenis", "Total Bayar", "Ongkir", "Packing", "Diskon", "Refund", "Profit", "Status"].map((h) => (
-                  <th key={h} className="px-3 py-3 text-left text-xs font-semibold text-gray-300 whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>

@@ -39,6 +39,8 @@ import {
   StatCard,
 } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -402,71 +404,32 @@ export default function AdminNotifikasiPage() {
   // ─── Tab button style ─────────────────────────────────────────────────────
 
   const tabStyle = (t: string) =>
-    `flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black transition-all duration-200 ${
+    cn(
+      "flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-150",
       activeTab === t
-        ? "bg-[#FF6B1A] text-white shadow-lg shadow-[#FF6B1A]/30 scale-[1.03]"
-        : "text-zinc-600 hover:bg-zinc-200 bg-zinc-100"
-    }`;
+        ? "bg-[#FF6B1A] text-white shadow-xs font-bold"
+        : "text-slate-600 hover:bg-slate-200 hover:text-slate-900 bg-slate-100"
+    );
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-6 pb-24 font-sans text-zinc-800">
-      {/* ── Gradient Header ── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-700 via-purple-600 to-indigo-600 p-8 text-white shadow-2xl">
-        <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-black/10 blur-2xl" />
-        <div className="absolute top-4 right-4 flex gap-2 opacity-30">
-          {[...Array(12)].map((_, i) => (
-            <div
-              key={i}
-              className="h-1.5 w-1.5 rounded-full bg-white"
-              style={{ animationDelay: `${i * 0.1}s` }}
-            />
-          ))}
-        </div>
-
-        <div className="relative flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-white/20 p-2 backdrop-blur-md">
-                <Bell className="h-5 w-5" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-purple-200">
-                Notification Center
-              </span>
-            </div>
-            <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-              Pusat Notifikasi
-            </h1>
-            <p className="max-w-xl text-sm font-medium text-purple-100">
-              Kelola channel Email (Resend) &amp; WhatsApp (Fonnte) secara terpusat. Monitor log, atur otomasi, dan uji koneksi langsung.
-            </p>
+    <div className="space-y-6 pb-24 font-sans text-slate-800">
+      <AdminPageHeader
+        title="Pusat Notifikasi"
+        subtitle="Kelola integrasi channel Email (Resend) & WhatsApp (Fonnte), pantau log transmisi, dan uji konektivitas"
+        breadcrumbs={[{ label: "Komunikasi" }, { label: "Pusat Notifikasi" }]}
+        icon={Bell}
+        badge={
+          <div className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>All Engines Online</span>
           </div>
-
-          {/* System Status */}
-          <div className="flex flex-col gap-2 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md">
-            <p className="text-[9px] font-black uppercase tracking-widest text-purple-200">
-              System Status
-            </p>
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50" />
-              <span className="text-sm font-black">All Engines Online</span>
-            </div>
-            <div className="flex gap-3 text-[10px] font-bold text-purple-200">
-              <span className="flex items-center gap-1">
-                <Mail className="h-3 w-3" /> Resend
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle className="h-3 w-3" /> Fonnte
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Tabs ── */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100 p-1.5 shadow-inner">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200/80 pb-3">
         <button onClick={() => setActiveTab("dashboard")} className={tabStyle("dashboard")}>
           <BarChart3 className="h-4 w-4" /> Dashboard
         </button>

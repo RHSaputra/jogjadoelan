@@ -1,10 +1,13 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { AlertCircle, Plus, Trash2, X, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
 import { getFaqListAsync, saveFaqListAsync, type FaqItem } from "@/lib/admin-toko-master-helpers";
 import { PageHeader, Section, Input, Select, Textarea, Button, EmptyState } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
+import { TokoSubnav } from "@/components/admin/TokoSubnav";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { HelpCircle } from "lucide-react";
 
 const KATEGORI_OPTS = ["Umum", "Pemesanan", "Pengiriman", "Pembayaran", "Garansi", "Custom Helm", "Refund & Tukar"];
 
@@ -37,8 +40,24 @@ export default function FaqPage() {
   const filtered = list.filter((f) => !filter || f.pertanyaan.toLowerCase().includes(filter.toLowerCase()) || f.kategori.toLowerCase().includes(filter.toLowerCase()));
 
   return (
-    <div className="space-y-5 pb-20">
-      <PageHeader title="FAQ" subtitle={`${list.length} pertanyaan`} icon={AlertCircle} variant="orange" actions={<Button variant="primary" size="sm" icon={<Plus className="h-3.5 w-3.5"/>} onClick={openNew} className="bg-white text-[#FF6B1A] hover:bg-white/90">Tambah FAQ</Button>} />
+    <div className="space-y-6 pb-20">
+      <TokoSubnav />
+
+      <AdminPageHeader
+        title="Tanya Jawab (FAQ)"
+        subtitle="Kelola daftar pertanyaan yang sering ditanyakan pembeli beserta jawabannya"
+        breadcrumbs={[{ label: "Toko" }, { label: "FAQ" }]}
+        icon={HelpCircle}
+        actions={
+          <button
+            type="button"
+            onClick={openNew}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#FF6B1A] px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-[#E04E00] transition"
+          >
+            <Plus className="h-4 w-4" /> Tambah FAQ
+          </button>
+        }
+      />
 
       <Section title="Daftar FAQ" subtitle="Kelola pertanyaan yang sering ditanyakan customer" badge={filtered.length} icon={<AlertCircle className="h-4 w-4" />}>
         <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Cari pertanyaan atau kategori..." className="mb-0" />

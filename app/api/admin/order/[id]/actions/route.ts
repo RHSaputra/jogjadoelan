@@ -46,8 +46,10 @@ async function pushNotif(
   title: string,
   body: string,
   link: string,
+  tx?: Prisma.TransactionClient,
 ): Promise<void> {
-  await prisma.notifikasi.create({
+  const dbClient = tx ?? prisma;
+  await dbClient.notifikasi.create({
     data: { userId, orderId, type, title, body, link },
   });
 }
@@ -68,32 +70,45 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
     if (o.status !== "MENUNGGU_KONFIRMASI") return fail(400, "Status bukan menunggu konfirmasi");
     const catatan = body.payload?.catatan;
 
-    await prisma.payment.updateMany({
-      where: { orderId: id, status: "PENDING" },
-      data: { status: "VERIFIED", verifiedAt: now, verifiedById: admin.id },
-    });
+    const updated = await prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({ where: { id }, select: { status: true } });
+      if (!current || current.status !== "MENUNGGU_KONFIRMASI") {
+        throw new Error("Status pesanan bukan menunggu konfirmasi");
+      }
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status: "DIPROSES",
-        catatanAdmin: catatan ?? o.catatanAdmin,
-        estimasiProsesHari: o.estimasiProsesHari ?? 2,
-        ordertimeline: {
-          create: [
-            { id: crypto.randomUUID(), step: STEP_TO_UPPER["dikonfirmasi"], label: "Pembayaran Dikonfirmasi", at: now, byAdminId: admin.id },
-            { id: crypto.randomUUID(), step: STEP_TO_UPPER["diproses"],     label: "Pesanan Diproses",        at: now, byAdminId: admin.id },
-          ],
+      await tx.payment.updateMany({
+        where: { orderId: id, status: "PENDING" },
+        data: { status: "VERIFIED", verifiedAt: now, verifiedById: admin.id },
+      });
+
+      const ord = await tx.order.update({
+        where: { id },
+        data: {
+          status: "DIPROSES",
+          catatanAdmin: catatan ?? o.catatanAdmin,
+          estimasiProsesHari: o.estimasiProsesHari ?? 2,
+          ordertimeline: {
+            create: [
+              { id: crypto.randomUUID(), step: STEP_TO_UPPER["dikonfirmasi"], label: "Pembayaran Dikonfirmasi", at: now, byAdminId: admin.id },
+              { id: crypto.randomUUID(), step: STEP_TO_UPPER["diproses"],     label: "Pesanan Diproses",        at: now, byAdminId: admin.id },
+            ],
+          },
         },
-      },
-      include: INCLUDE,
-    });
+        include: INCLUDE,
+      });
 
-    await pushNotif(o.userId, id, "ORDER",
-      "Pesanan diproses",
-      `Pesanan ${id} sudah dikonfirmasi & masuk tahap diproses.`,
-      `/pesanan/${id}`
-    );
+      await pushNotif(
+        o.userId,
+        id,
+        "ORDER",
+        "Pesanan diproses",
+        `Pesanan ${id} sudah dikonfirmasi & masuk tahap diproses.`,
+        `/pesanan/${id}`,
+        tx,
+      );
+
+      return ord;
+    });
 
     // Email customer: pembayaran dikonfirmasi + pesanan diproses
     sendOrderEmail("payment-verified", {
@@ -119,30 +134,43 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
     if (o.status !== "MENUNGGU_KONFIRMASI") return fail(400, "Status bukan menunggu konfirmasi");
     const { alasan } = body.payload;
 
-    await prisma.payment.updateMany({
-      where: { orderId: id, status: "PENDING" },
-      data: { status: "REJECTED", alasanTolak: alasan },
-    });
+    const updated = await prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({ where: { id }, select: { status: true } });
+      if (!current || current.status !== "MENUNGGU_KONFIRMASI") {
+        throw new Error("Status pesanan bukan menunggu konfirmasi");
+      }
 
-    const updated = await prisma.order.update({
-      where: { id },
-      data: {
-        status: "MENUNGGU_PEMBAYARAN",
-        buktiBayar: null,
-        buktiBayarAt: null,
-        catatanAdmin: `[BUKTI DITOLAK] ${alasan}`,
-        ordertimeline: {
-          create: { id: crypto.randomUUID(), step: STEP_TO_UPPER["dibuat"], label: "Bukti Pembayaran Ditolak", sub: alasan, at: now, byAdminId: admin.id },
+      await tx.payment.updateMany({
+        where: { orderId: id, status: "PENDING" },
+        data: { status: "REJECTED", alasanTolak: alasan },
+      });
+
+      const ord = await tx.order.update({
+        where: { id },
+        data: {
+          status: "MENUNGGU_PEMBAYARAN",
+          buktiBayar: null,
+          buktiBayarAt: null,
+          catatanAdmin: `[BUKTI DITOLAK] ${alasan}`,
+          ordertimeline: {
+            create: { id: crypto.randomUUID(), step: STEP_TO_UPPER["dibuat"], label: "Bukti Pembayaran Ditolak", sub: alasan, at: now, byAdminId: admin.id },
+          },
         },
-      },
-      include: INCLUDE,
-    });
+        include: INCLUDE,
+      });
 
-    await pushNotif(o.userId, id, "PEMBAYARAN",
-      "Bukti pembayaran ditolak",
-      `Pesanan ${id}: ${alasan}. Silakan unggah ulang bukti transfer.`,
-      `/pembayaran/${id}`
-    );
+      await pushNotif(
+        o.userId,
+        id,
+        "PEMBAYARAN",
+        "Bukti pembayaran ditolak",
+        `Pesanan ${id}: ${alasan}. Silakan unggah ulang bukti transfer.`,
+        `/pembayaran/${id}`,
+        tx,
+      );
+
+      return ord;
+    });
 
     // Email customer: pembayaran ditolak
     sendOrderEmail("payment-rejected", { recipientEmail: o.user.email, recipientName: o.user.username, orderId: id, reason: alasan })

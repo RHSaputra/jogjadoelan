@@ -43,45 +43,56 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
     ? new Date(String(form.get("jamTransfer")))
     : now;
 
-  await prisma.payment.create({
-    data: {
-      id: crypto.randomUUID(),
-      orderId: id,
-      type: "FULL",
-      metode: o.metodeBayar,
-      bankKey: o.bankKey,
-      nominal: o.total,
-      buktiPath: uploaded.path,
-      pengirimNama,
-      pengirimBank,
-      pengirimNoRek,
-      jamTransfer,
-      status: "PENDING",
-    },
-  });
+  const updated = await prisma.$transaction(async (tx) => {
+    const current = await tx.order.findUnique({ where: { id } });
+    if (!current || current.userId !== me.id) {
+      throw new Error("Pesanan tidak ditemukan");
+    }
+    if (!["MENUNGGU_PEMBAYARAN", "MENUNGGU_KONFIRMASI"].includes(current.status)) {
+      throw new Error("Order tidak menerima pembayaran lagi");
+    }
 
-  const updated = await prisma.order.update({
-    where: { id },
-    data: {
-      buktiBayar: uploaded.path,
-      buktiBayarAt: now,
-      status: "MENUNGGU_KONFIRMASI",
-      ordertimeline: { create: { id: crypto.randomUUID(), step: "DIBAYAR", label: "Bukti Pembayaran Diunggah", at: now } },
-    },
-    include: { orderitem: true, ordertimeline: { orderBy: { at: "asc" } }, payment: true },
-  });
+    await tx.payment.create({
+      data: {
+        id: crypto.randomUUID(),
+        orderId: id,
+        type: "FULL",
+        metode: current.metodeBayar,
+        bankKey: current.bankKey,
+        nominal: current.total,
+        buktiPath: uploaded.path,
+        pengirimNama,
+        pengirimBank,
+        pengirimNoRek,
+        jamTransfer,
+        status: "PENDING",
+      },
+    });
 
-  // Buat notifikasi database untuk customer
-  await prisma.notifikasi.create({
-    data: {
-      id: crypto.randomUUID(),
-      userId: me.id,
-      orderId: id,
-      type: "ORDER",
-      title: "Bukti pembayaran diterima",
-      body: `Pembayaran untuk pesanan ${id} telah diunggah, menunggu konfirmasi admin.`,
-      link: `/pesanan/${id}`,
-    },
+    const ord = await tx.order.update({
+      where: { id },
+      data: {
+        buktiBayar: uploaded.path,
+        buktiBayarAt: now,
+        status: "MENUNGGU_KONFIRMASI",
+        ordertimeline: { create: { id: crypto.randomUUID(), step: "DIBAYAR", label: "Bukti Pembayaran Diunggah", at: now } },
+      },
+      include: { orderitem: true, ordertimeline: { orderBy: { at: "asc" } }, payment: true },
+    });
+
+    await tx.notifikasi.create({
+      data: {
+        id: crypto.randomUUID(),
+        userId: me.id,
+        orderId: id,
+        type: "ORDER",
+        title: "Bukti pembayaran diterima",
+        body: `Pembayaran untuk pesanan ${id} telah diunggah, menunggu konfirmasi admin.`,
+        link: `/pesanan/${id}`,
+      },
+    });
+
+    return ord;
   });
 
   // Kirim email notifikasi ke customer & admin (non-blocking)

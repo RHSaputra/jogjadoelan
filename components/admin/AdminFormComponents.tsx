@@ -22,11 +22,11 @@ interface SectionProps {
 export function Section({ title, subtitle, icon, children, className, badge, action }: SectionProps) {
   return (
     <section className={cn(
-      "rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden transition-all hover:shadow-md",
+      "rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden transition-all",
       className,
     )}>
       {/* Section Header */}
-      <div className="flex flex-col items-stretch justify-between gap-3 border-b border-gray-100 bg-gray-50/50 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5">
+      <div className="flex flex-col items-stretch justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5">
         <div className="flex items-center gap-2.5 min-w-0">
           {icon && (
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-[#FF6B1A]/10 text-[#FF6B1A]">
@@ -34,17 +34,17 @@ export function Section({ title, subtitle, icon, children, className, badge, act
             </div>
           )}
           <div className="min-w-0">
-            <h3 className="text-xs font-black uppercase tracking-widest text-gray-800 truncate">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 truncate">
               {title}
             </h3>
             {subtitle && (
-              <p className="mt-0.5 text-[10px] text-gray-500 leading-snug line-clamp-1">
+              <p className="mt-0.5 text-xs text-slate-500 leading-snug line-clamp-1">
                 {subtitle}
               </p>
             )}
           </div>
           {badge !== undefined && (
-            <span className="flex-shrink-0 rounded-full bg-[#FF6B1A]/10 px-2.5 py-0.5 text-[10px] font-black text-[#FF6B1A]">
+            <span className="flex-shrink-0 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
               {badge}
             </span>
           )}
@@ -72,12 +72,12 @@ interface LabelProps {
 export function Label({ children, required, hint, className, htmlFor }: LabelProps) {
   return (
     <label htmlFor={htmlFor} className={cn("mb-1.5 block", className)}>
-      <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
+      <span className="text-xs font-semibold text-slate-700">
         {children}
-        {required && <span className="ml-1 text-red-500">*</span>}
+        {required && <span className="ml-1 text-rose-500">*</span>}
       </span>
       {hint && (
-        <span className="ml-1.5 text-[9px] font-medium text-gray-400 normal-case tracking-normal">
+        <span className="ml-1.5 text-[11px] font-normal text-slate-400">
           — {hint}
         </span>
       )}
@@ -103,33 +103,33 @@ export function Input({ label, required, hint, error, prefix, suffix, className,
       {label && <Label required={required} hint={hint} htmlFor={inputId}>{label}</Label>}
       <div className="relative">
         {prefix && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-gray-400 pointer-events-none">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">
             {prefix}
           </span>
         )}
         <input
           id={inputId}
           className={cn(
-            "w-full rounded-xl border-2 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-900",
-            "placeholder:text-gray-400 placeholder:font-medium",
-            "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF6B1A]/10",
+            "w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900",
+            "placeholder:text-slate-400 placeholder:font-normal",
+            "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/15",
             "transition-all duration-150",
-            error ? "border-red-300 bg-red-50/30 focus:ring-red-500/10 focus:border-red-500" : "border-gray-200",
-            prefix && "pl-10",
-            suffix && "pr-10",
+            error ? "border-rose-300 bg-rose-50/30 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200",
+            prefix && "pl-9",
+            suffix && "pr-9",
             className,
           )}
           {...props}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-gray-400 pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 pointer-events-none">
             {suffix}
           </span>
         )}
       </div>
       {error && (
-        <p className="mt-1 text-[10px] font-bold text-red-500 flex items-center gap-1">
-          <span className="inline-block w-1 h-1 rounded-full bg-red-500 flex-shrink-0" />
+        <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />
           {error}
         </p>
       )}
@@ -154,18 +154,18 @@ export function Textarea({ label, required, hint, error, className, id, ...props
       <textarea
         id={textareaId}
         className={cn(
-          "w-full rounded-xl border-2 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-900",
-          "placeholder:text-gray-400 placeholder:font-medium",
-          "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF6B1A]/10",
+          "w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900",
+          "placeholder:text-slate-400 placeholder:font-normal",
+          "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/15",
           "transition-all duration-150 resize-y min-h-[60px]",
-          error ? "border-red-300 bg-red-50/30 focus:ring-red-500/10 focus:border-red-500" : "border-gray-200",
+          error ? "border-rose-300 bg-rose-50/30 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200",
           className,
         )}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-[10px] font-bold text-red-500 flex items-center gap-1">
-          <span className="inline-block w-1 h-1 rounded-full bg-red-500 flex-shrink-0" />
+        <p className="mt-1 text-xs font-semibold text-rose-500 flex items-center gap-1">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />
           {error}
         </p>
       )}
@@ -192,11 +192,11 @@ export function Select({ label, required, hint, error, options, placeholder, cla
       <select
         id={selectId}
         className={cn(
-          "w-full rounded-xl border-2 bg-gray-50 px-4 py-2.5 text-xs font-bold text-gray-900",
-          "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#FF6B1A]/10",
+          "w-full rounded-xl border bg-white px-3.5 py-2.5 text-xs font-medium text-slate-900",
+          "focus:border-[#FF6B1A] focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/15",
           "transition-all duration-150 appearance-none cursor-pointer",
           "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[length:16px] bg-[right_10px_center] bg-no-repeat",
-          error ? "border-red-300 bg-red-50/30 focus:ring-red-500/10 focus:border-red-500" : "border-gray-200",
+          error ? "border-rose-300 bg-rose-50/30 focus:ring-rose-500/10 focus:border-rose-500" : "border-slate-200",
           className,
         )}
         {...props}
@@ -384,17 +384,17 @@ interface ButtonProps {
 }
 
 const buttonVariants = {
-  primary: "bg-[#FF6B1A] text-white hover:bg-[#E55A0F] shadow-lg shadow-[#FF6B1A]/25 hover:shadow-xl hover:shadow-[#FF6B1A]/30",
-  secondary: "bg-[#fc970a] text-white hover:bg-[#e08a00] shadow-lg shadow-[#fc970a]/20",
-  danger: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20",
-  ghost: "bg-transparent text-gray-600 hover:bg-gray-100",
-  outline: "border-2 border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50",
+  primary: "bg-[#FF6B1A] text-white hover:bg-[#E55A0F] shadow-xs active:scale-[0.98]",
+  secondary: "bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 hover:text-slate-900 active:scale-[0.98]",
+  danger: "bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 active:scale-[0.98]",
+  ghost: "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+  outline: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 active:scale-[0.98]",
 };
 
 const buttonSizes = {
-  sm: "min-h-8 px-3 py-1.5 text-[10px]",
-  md: "min-h-10 px-4 py-2 text-[11px]",
-  lg: "min-h-11 px-5 py-2.5 text-xs",
+  sm: "min-h-8 px-3 py-1.5 text-xs",
+  md: "min-h-9 px-4 py-2 text-xs",
+  lg: "min-h-10 px-5 py-2.5 text-sm",
 };
 
 export function Button({
@@ -402,10 +402,9 @@ export function Button({
   type = "button", disabled, loading, icon, className, href,
 }: ButtonProps) {
   const baseClasses = cn(
-    "inline-flex max-w-full select-none items-center justify-center gap-1.5 rounded-xl text-center font-black leading-tight transition-all duration-150",
+    "inline-flex max-w-full select-none items-center justify-center gap-1.5 rounded-xl text-center font-semibold leading-tight transition-all duration-150",
     "[&>svg]:shrink-0 [&_svg]:shrink-0",
     "disabled:opacity-50 disabled:cursor-not-allowed",
-    "hover:-translate-y-0.5 active:translate-y-0",
     buttonVariants[variant],
     buttonSizes[size],
     className,
@@ -523,30 +522,21 @@ interface PageHeaderProps {
   subtitle?: string;
   icon?: React.ElementType;
   actions?: ReactNode;
-  variant?: "orange" | "navy" | "gradient";
+  variant?: "clean" | "orange" | "navy" | "gradient";
 }
 
-export function PageHeader({ title, subtitle, icon: Icon, actions, variant = "orange" }: PageHeaderProps) {
-  const bgClasses = {
-    orange: "bg-[#fc970a] text-white",
-    navy: "bg-[#0E2148] text-white",
-    gradient: "bg-gradient-to-br from-orange-500 via-orange-400 to-orange-500 text-white",
-  };
-
+export function PageHeader({ title, subtitle, icon: Icon, actions }: PageHeaderProps) {
   return (
-    <div className={cn(
-      "flex flex-col items-stretch justify-between gap-3 rounded-2xl p-4 shadow-lg sm:flex-row sm:items-center sm:p-5",
-      bgClasses[variant],
-    )}>
+    <div className="flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:p-5">
       <div className="flex items-center gap-3 min-w-0">
         {Icon && (
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/15">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-orange-50 text-[#FF6B1A] border border-orange-100">
             <Icon className="h-5 w-5" />
           </div>
         )}
         <div className="min-w-0">
-          <h1 className="text-base sm:text-lg font-black">{title}</h1>
-          {subtitle && <p className="mt-0.5 text-[11px] opacity-80 line-clamp-1">{subtitle}</p>}
+          <h1 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">{title}</h1>
+          {subtitle && <p className="mt-0.5 text-xs text-slate-500 line-clamp-1">{subtitle}</p>}
         </div>
       </div>
       {actions && (
@@ -557,6 +547,8 @@ export function PageHeader({ title, subtitle, icon: Icon, actions, variant = "or
     </div>
   );
 }
+
+export * from "./ui";
 
 // ─── FORM ACTIONS (Sticky Bottom Bar) ───────────────────────────
 interface FormActionsProps {

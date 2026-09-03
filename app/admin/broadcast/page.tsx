@@ -24,6 +24,8 @@ import {
 import { Section, Input, Select, Button, EmptyState } from "@/components/admin/AdminFormComponents";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
+import { cn } from "@/lib/utils";
 
 // Interface definitions
 interface WaContact {
@@ -550,62 +552,47 @@ export default function AdminBroadcastPage() {
     });
   };
 
-  // Background gradient and glass styling constants
-  const tabActiveStyle = "bg-[#FF6B1A] text-white shadow-md scale-105";
-  const tabInactiveStyle = "text-zinc-600 bg-zinc-100 hover:bg-zinc-200";
-
   return (
-    <div className="space-y-6 pb-24 font-sans text-zinc-800">
-      {/* Premium Gradient Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-orange-600 via-[#FF6B1A] to-amber-500 p-8 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-white/10 blur-xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-48 w-48 rounded-full bg-black/10 blur-xl" />
-        
-        <div className="relative flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="rounded-full bg-white/20 p-2 backdrop-blur-md">
-                <Megaphone className="h-6 w-6" />
-              </div>
-              <span className="text-xs font-black uppercase tracking-wider text-orange-100">Broadcast Portal</span>
-            </div>
-            <h1 className="text-3xl font-black tracking-tight md:text-4xl">Unified Broadcast</h1>
-            <p className="text-sm font-medium text-orange-50 max-w-xl">
-              Kirim pengumuman massal secara instan melalui WhatsApp, Email, atau Notifikasi In-App langsung dari satu dashboard terpadu.
-            </p>
+    <div className="space-y-6 pb-24 font-sans text-slate-800">
+      <AdminPageHeader
+        title="Broadcast Terpadu"
+        subtitle="Kirim pengumuman massal secara instan atau terjadwal melalui WhatsApp, Email, dan Notifikasi In-App"
+        breadcrumbs={[{ label: "Komunikasi" }, { label: "Broadcast Terpadu" }]}
+        icon={Megaphone}
+        badge={
+          <div className="flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Fonnte & Resend Aktif</span>
           </div>
-          
-          {/* Integration Status Badge */}
-          <div className="flex items-center gap-3 rounded-2xl bg-white/15 px-4 py-3 border border-white/20 backdrop-blur-md">
-            <div className="h-3.5 w-3.5 animate-pulse rounded-full bg-emerald-400 shadow-glow" />
-            <div>
-              <p className="text-[10px] font-bold uppercase text-orange-200">System Engines</p>
-              <p className="text-xs font-black">Ready / Active</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Tabs */}
-      <div className="flex justify-center">
-        <div className="flex items-center gap-2 rounded-2xl bg-zinc-100 p-1.5 shadow-inner">
+      <div className="flex justify-start border-b border-slate-200/80 pb-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveTab("broadcast")}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black transition-all duration-300 ${
-              activeTab === "broadcast" ? tabActiveStyle : tabInactiveStyle
-            }`}
+            className={cn(
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all",
+              activeTab === "broadcast"
+                ? "bg-[#FF6B1A] text-white shadow-xs font-bold"
+                : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900"
+            )}
           >
             <Megaphone className="h-4 w-4" />
-            Notif Broadcast
+            Notifikasi Broadcast
           </button>
           <button
             onClick={() => setActiveTab("transactional")}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-black transition-all duration-300 ${
-              activeTab === "transactional" ? tabActiveStyle : tabInactiveStyle
-            }`}
+            className={cn(
+              "flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition-all",
+              activeTab === "transactional"
+                ? "bg-[#FF6B1A] text-white shadow-xs font-bold"
+                : "text-slate-600 bg-slate-100 hover:bg-slate-200 hover:text-slate-900"
+            )}
           >
             <Clock className="h-4 w-4" />
-            Notif Transaksional
+            Log WhatsApp Transaksional
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +6,8 @@ import Link from "next/link";
 import { ArrowLeft, PackagePlus } from "lucide-react";
 import { addCustomProduct } from "@/lib/admin-produk-helpers";
 import { ProdukForm, EMPTY_PRODUK, type ProdukFormValue } from "@/lib/produk-form-shared";
-import { PageHeader, FormActions } from "@/components/admin/AdminFormComponents";
+import { FormActions } from "@/components/admin/AdminFormComponents";
+import { AdminPageHeader } from "@/components/admin/ui/AdminPageHeader";
 import { useAdminNotification } from "@/components/admin/AdminNotification";
 
 export default function TambahProdukPage() {
@@ -43,15 +44,17 @@ export default function TambahProdukPage() {
 
   return (
     <div className="space-y-5 pb-24">
-      <PageHeader
+      <AdminPageHeader
         title="Tambah Produk Baru"
-        subtitle="Isi semua informasi produk yang akan tampil di katalog customer"
+        subtitle="Lengkapi rincian identitas, harga, varian stok, dan galeri foto helm"
+        breadcrumbs={[{ label: "Catalog", href: "/admin/produk" }, { label: "Tambah Produk" }]}
         icon={PackagePlus}
-        variant="orange"
         actions={
-          <Link href="/admin/produk"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-2 text-[11px] font-black text-white hover:bg-white/20 transition-colors">
-            <ArrowLeft className="h-3.5 w-3.5" /> Kembali
+          <Link
+            href="/admin/produk"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 text-slate-500" /> Kembali ke Katalog
           </Link>
         }
       />

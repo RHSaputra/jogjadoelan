@@ -123,8 +123,8 @@ export function AdminGlobalSearch() {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Pencarian Global..."
-          className="w-full rounded-full border border-orange-200 bg-orange-50/50 py-2 pl-9 pr-8 text-xs outline-none focus:border-[#FF6B1A] focus:bg-white transition-all"
+          placeholder="Cari pesanan, produk, pelanggan..."
+          className="w-full rounded-xl border border-slate-200 bg-slate-100 py-2 pl-9 pr-8 text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:border-[#FF6B1A] focus:bg-white focus:ring-2 focus:ring-orange-500/15 transition-all"
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
