@@ -58,19 +58,28 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   });
 
   const admin: AdminUser | null = useMemo(() => {
-    if (!isAdminSession || !meQuery.data || meQuery.data.kind !== "admin") return null;
-    const d = meQuery.data;
+    if (!isAdminSession) return null;
+    if (meQuery.data && meQuery.data.kind === "admin") {
+      const d = meQuery.data;
+      return {
+        username: d.username,
+        nama: d.nama,
+        email: d.email ?? "",
+        noHp: d.noHp ?? "",
+        foto: d.foto ?? undefined,
+        loggedAt: new Date().toISOString(),
+      };
+    }
     return {
-      username: d.username,
-      nama: d.nama,
-      email: d.email ?? "",
-      noHp: d.noHp ?? "",
-      foto: d.foto ?? undefined,
+      username: session?.user?.username || "admin",
+      nama: session?.user?.name || session?.user?.username || "Super Admin",
+      email: session?.user?.email || "",
+      noHp: "",
       loggedAt: new Date().toISOString(),
     };
-  }, [isAdminSession, meQuery.data]);
+  }, [isAdminSession, meQuery.data, session]);
 
-  const isLoading = status === "loading" || (isAdminSession && meQuery.isPending);
+  const isLoading = status === "loading";
 
   const login = useCallback(
     async (username: string, password: string, _remember: boolean) => {
@@ -133,7 +142,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider
       value={{
         admin,
-        isAuthenticated: !!admin,
+        isAuthenticated: isAdminSession,
         isLoading,
         login,
         logout,

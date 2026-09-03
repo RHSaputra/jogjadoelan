@@ -28,14 +28,12 @@ function AdminShell({ children }: { children: ReactNode }) {
     pathname === "/admin/lupa-password" ||
     pathname.startsWith("/admin/lupa-password/");
 
-  // Redirect dengan jeda 300ms
+  // Redirect aman: hanya redirect jika status autentikasi sudah selesai loading dan terbukti tidak authenticated
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isLoading && !isAuthenticated && !isPublicPage) {
-        router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
+    if (isLoading || isPublicPage) return;
+    if (!isAuthenticated) {
+      router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
+    }
   }, [isAuthenticated, isLoading, isPublicPage, pathname, router]);
 
   // Track interaksi (biarkan tetap)
