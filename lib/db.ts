@@ -12,7 +12,8 @@ declare global {
   var __PRISMA__: PrismaClient | undefined;
 }
 
-function parseDbUrl(url: string) {
+function parseDbUrl(rawUrl: string) {
+  const url = rawUrl.trim().replace(/^["']|["']$/g, "");
   const u = new URL(url);
   const isProd = process.env.NODE_ENV === "production";
   
@@ -36,6 +37,8 @@ function parseDbUrl(url: string) {
     password: u.password ? decodeURIComponent(u.password) : undefined,
     database: u.pathname.replace(/^\//, ""),
     connectionLimit: limit,
+    connectTimeout: 20000,
+    acquireTimeout: 20000,
     ssl: useSsl ? { rejectUnauthorized: false } : undefined,
   };
 }
