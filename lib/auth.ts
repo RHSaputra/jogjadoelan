@@ -64,8 +64,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(credentials) {
         const parsed = adminLoginSchema.safeParse(credentials);
         if (!parsed.success) return null;
-        const admin = await prisma.adminuser.findUnique({
-          where: { username: parsed.data.username.trim() },
+        const loginId = parsed.data.username.trim();
+        const admin = await prisma.adminuser.findFirst({
+          where: {
+            OR: [
+              { username: loginId },
+              { email: loginId.toLowerCase() },
+            ],
+          },
         });
         if (!admin || !admin.aktif) return null;
         const ok = await bcrypt.compare(parsed.data.password, admin.passwordHash);
