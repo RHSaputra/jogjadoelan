@@ -68,7 +68,10 @@ export async function saveBuffer(
   filename: string,
   mimeType: string
 ): Promise<string> {
-  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  const token =
+    process.env.BLOB_READ_WRITE_TOKEN ||
+    process.env.BLOB_STORE_ID_READ_WRITE_TOKEN ||
+    process.env.VERCEL_BLOB_READ_WRITE_TOKEN;
   if (token) {
     // Unggah ke Vercel Blob
     const blob = await put(`${sub}/${filename}`, buffer, {
