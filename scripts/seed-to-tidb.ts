@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { prisma as localPrisma } from "c:/jogjadoelan/lib/db";
+import { prisma as localPrisma } from "../lib/db";
 import { PrismaClient } from "@prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 
@@ -74,11 +74,11 @@ async function main() {
         produkvarian: {
           create: produkvarian.map((v) => ({
             id: v.id,
-            sku: v.sku,
+            nama: v.nama,
             ukuran: v.ukuran,
             warna: v.warna,
             stok: v.stok,
-            hargaTambahan: v.hargaTambahan,
+            harga: v.harga,
           })),
         },
       },

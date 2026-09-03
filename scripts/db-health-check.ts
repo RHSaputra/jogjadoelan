@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { prisma } from "c:/jogjadoelan/lib/db";
+import { prisma } from "../lib/db";
 
 interface VariableRow {
   Variable_name: string;
