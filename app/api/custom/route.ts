@@ -47,12 +47,18 @@ export const POST = handler(async (req: Request) => {
     });
   }
 
-  const body = await req.json().catch(() => null);
+  const body = await req.json().catch(() => ({}));
   const parsed = CustomOrderInputSchema.safeParse(body);
   if (!parsed.success) {
-    return fail(422, "Data form tidak valid", "VALIDATION", {
-      _: parsed.error.message,
-    });
+    const fields: Record<string, string> = {};
+    const messages: string[] = [];
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join(".") || "_";
+      fields[key] = issue.message;
+      messages.push(issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message);
+    }
+    const errorMsg = messages.length ? messages.join("; ") : "Data form tidak valid";
+    return fail(422, errorMsg, "VALIDATION", fields);
   }
   const f = parsed.data;
 

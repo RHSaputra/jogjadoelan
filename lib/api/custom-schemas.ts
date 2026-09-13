@@ -7,20 +7,27 @@
 import { z } from "zod/v4";
 
 export const WarnaItemSchema = z.object({
-  hex: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "HEX warna tidak valid"),
-  nama: z.string().trim().max(40).optional(),
-  sumber: z.enum(["preset", "custom"]),
+  hex: z
+    .string()
+    .transform((v) => {
+      let s = v.trim();
+      if (!s.startsWith("#")) s = `#${s}`;
+      return s;
+    })
+    .pipe(z.string().regex(/^#[0-9A-Fa-f]{6}$/, "HEX warna tidak valid")),
+  nama: z.string().trim().max(100).optional().nullable(),
+  sumber: z.enum(["preset", "custom"]).optional().transform((v) => v ?? "preset"),
 });
 
 export const CustomOrderInputSchema = z.object({
-  jenis: z.string().trim().min(1).max(40),
-  ukuran: z.string().trim().min(1).max(20),
-  finishing: z.string().trim().max(40).optional().nullable(),
-  strap: z.string().trim().max(40).optional().nullable(),
-  motifBusa: z.string().trim().max(40).optional().nullable(),
-  bahan: z.string().trim().max(40).optional().nullable(),
-  aksesoris: z.string().trim().max(40).optional().nullable(),
-  warnaList: z.array(WarnaItemSchema).min(1).max(5),
+  jenis: z.string().trim().min(1, "Jenis helm wajib dipilih").max(100),
+  ukuran: z.string().trim().min(1, "Ukuran helm wajib dipilih").max(50),
+  finishing: z.string().trim().max(100).optional().nullable(),
+  strap: z.string().trim().max(100).optional().nullable(),
+  motifBusa: z.string().trim().max(100).optional().nullable(),
+  bahan: z.string().trim().max(100).optional().nullable(),
+  aksesoris: z.string().trim().max(100).optional().nullable(),
+  warnaList: z.array(WarnaItemSchema).min(1, "Pilih minimal 1 warna").max(10),
   warnaCatatan: z.string().trim().max(500).optional().nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
   referensiPaths: z.array(z.string().trim().min(1)).max(10).default([]),

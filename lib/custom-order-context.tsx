@@ -353,17 +353,37 @@ export function CustomOrderProvider({ children }: { children: React.ReactNode })
       throw new Error("Silakan login terlebih dahulu");
     }
 
+    const rawWarnaList = draft.warnaList ?? [];
+    const warnaList =
+      rawWarnaList.length > 0
+        ? rawWarnaList.map((w) => {
+            let hex = (w.hex ?? "").trim();
+            if (!hex.startsWith("#")) hex = `#${hex}`;
+            return {
+              hex,
+              nama: w.nama || undefined,
+              sumber: w.sumber ?? ("preset" as const),
+            };
+          })
+        : [
+            {
+              hex: CUSTOM_PALETTE_PRESETS[0].hex,
+              nama: CUSTOM_PALETTE_PRESETS[0].nama,
+              sumber: "preset" as const,
+            },
+          ];
+
     const payload = {
-      jenis: draft.jenis,
-      ukuran: draft.ukuran,
-      finishing: draft.finishing,
-      strap: draft.strap,
-      motifBusa: draft.motifBusa,
-      bahan: draft.bahan,
-      aksesoris: draft.aksesoris,
-      warnaList: draft.warnaList,
-      warnaCatatan: draft.warnaCatatan,
-      notes: draft.notes,
+      jenis: draft.jenis?.trim() || "Half Face",
+      ukuran: draft.ukuran?.trim() || "M",
+      finishing: draft.finishing?.trim() || null,
+      strap: draft.strap?.trim() || null,
+      motifBusa: draft.motifBusa?.trim() || null,
+      bahan: draft.bahan?.trim() || null,
+      aksesoris: draft.aksesoris?.trim() || null,
+      warnaList,
+      warnaCatatan: draft.warnaCatatan?.trim() || null,
+      notes: draft.notes?.trim() || null,
       referensiPaths: (draft.referensiFiles ?? [])
         .map((f) => f.dataUrl)
         .filter((p): p is string => typeof p === "string" && p.startsWith("/uploads/")),
