@@ -143,13 +143,6 @@ function CheckoutInner() {
   // untuk alamat/kurir/qty yang sama.
   const HELM_WEIGHT_G = 1000;
 
-  // Reset pilihan kurir setiap kali alamat (kode pos) berubah
-  const [prevKodePos, setPrevKodePos] = useState(alamat.kodePos);
-  if (alamat.kodePos !== prevKodePos) {
-    setPrevKodePos(alamat.kodePos);
-    setSelectedKurir("");
-  }
-
   // Payload items stabil (identitas tidak berubah tiap render) agar efek
   // ongkir hanya berjalan saat isi item benar-benar berubah.
   const ongkirItemsKey = useMemo(
@@ -166,10 +159,13 @@ function CheckoutInner() {
       if (!kodePos || kodePos.length < 5 || totalQty === 0) {
         setOngkirResults([]);
         setOngkirDb(null);
+        setSelectedKurir("");
         return;
       }
       setLoadingOngkir(true);
       setOngkirResults([]);
+      setOngkirDb(null);
+      setSelectedKurir("");
       try {
         const payloadItems = JSON.parse(ongkirItemsKey) as Array<{ w: number; q: number; v: number }>;
         // Kirim sebagai items array (bukan convenience weight/quantity) agar
@@ -209,6 +205,7 @@ function CheckoutInner() {
         toast.error("Gagal menghitung ongkir", { description: "Coba periksa kembali Kode Pos Anda atau coba lagi nanti." });
         setOngkirDb(null);
         setOngkirResults([]);
+        setSelectedKurir("");
       } finally {
         if (!cancelled) setLoadingOngkir(false);
       }
