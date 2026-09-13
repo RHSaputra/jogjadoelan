@@ -53,7 +53,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   sendOrderEmail("tukar-rejected", {
     recipientEmail: t.user.email,
     recipientName: t.user.username,
-    orderId: t.orderId,
+    orderId: t.orderId ?? t.customOrderId ?? "",
     komplainId: t.komplainId,
     reason: body.alasan,
   }).catch(err => console.error("[EMAIL] tukar-rejected customer email failed:", err));

@@ -71,7 +71,8 @@ export const POST = handler(async (req: Request) => {
       data: {
         id: genTukarId(),
         komplainId: k.id,
-        orderId: k.orderId!,
+        orderId: k.orderId ?? null,
+        customOrderId: k.customOrderId ?? null,
         userId: u.id,
         status: "MENUNGGU_REVIEW_ADMIN",
         productId: body.productId ?? null,
@@ -106,7 +107,7 @@ export const POST = handler(async (req: Request) => {
   sendOrderEmail("tukar-requested", {
     recipientEmail: u.email,
     recipientName: u.username,
-    orderId: created.orderId,
+    orderId: created.orderId ?? created.customOrderId ?? "",
     komplainId: created.komplainId,
     productNama: created.productNama,
     ukuranBaru: created.ukuranBaru,
@@ -122,7 +123,7 @@ export const POST = handler(async (req: Request) => {
             adminName: admin.nama,
             tukarId: created.id,
             customerName: u.username,
-            orderId: created.orderId,
+            orderId: created.orderId ?? created.customOrderId ?? "",
             productNama: created.productNama,
             ukuranBaru: created.ukuranBaru,
           }).catch(err => console.error(`[EMAIL] admin new-tukar to ${admin.email} failed:`, err));

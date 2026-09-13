@@ -80,8 +80,7 @@ export function ProductDetailClient({
   })();
 
   const ukuranArr: string[] = (() => {
-    const arr = toStringArray(produk?.ukuran);
-    return arr.length > 0 ? arr : ["M"];
+    return toStringArray(produk?.ukuran);
   })();
 
   const spesifikasiArr: string[] = (() => {
@@ -98,7 +97,7 @@ export function ProductDetailClient({
   })();
 
   const [activeImg, setActiveImg] = useState(0);
-  const [ukuran, setUkuran] = useState(ukuranArr[0]);
+  const [ukuran, setUkuran] = useState<string | null>(ukuranArr[0] ?? null);
   const [qty, setQty] = useState(1);
 
   /* Carousel navigation untuk gallery (maks 5 gambar) */
@@ -202,8 +201,10 @@ export function ProductDetailClient({
       return;
     }
     requireLogin(() => {
-      cart.add(String(produk.id), String(ukuran), null, qty);
-      toast.success(`${produk.nama} (${ukuran}) ditambahkan ke keranjang`, {
+      const finalUkuran = ukuranArr.length > 0 ? (ukuran ?? ukuranArr[0]) : null;
+      cart.add(String(produk.id), finalUkuran, null, qty);
+      const labelUkuran = finalUkuran ? ` (${finalUkuran})` : "";
+      toast.success(`${produk.nama}${labelUkuran} ditambahkan ke keranjang`, {
         description: "Produk berhasil masuk ke keranjang belanja.",
       });
     });
@@ -217,7 +218,8 @@ export function ProductDetailClient({
       return;
     }
     requireLogin(() => {
-      const payload = `${produk.id}:${encodeURIComponent(ukuran)}:${qty}`;
+      const finalUkuran = ukuranArr.length > 0 ? (ukuran ?? ukuranArr[0]) : "";
+      const payload = `${produk.id}:${encodeURIComponent(finalUkuran)}:${qty}`;
       router.push(`/checkout?mode=buy&items=${payload}`);
     });
   };
@@ -440,7 +442,7 @@ export function ProductDetailClient({
               <div className="bg-white p-3 text-center">
                 <p className="text-xs text-brand-black/60">Ukuran :</p>
                 <p className="mt-1 text-sm font-bold text-brand-black">
-                  {ukuranArr.join(", ")}
+                  {ukuranArr.length > 0 ? ukuranArr.join(", ") : "All Size"}
                 </p>
               </div>
               <div className="bg-white p-3 text-center">
@@ -472,27 +474,29 @@ export function ProductDetailClient({
               </div>
             </div>
 
-            <div>
-              <p className="mb-2 text-sm font-bold text-brand-black">
-                Pilih Ukuran :
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {ukuranArr.map((u) => (
-                  <button
-                    key={u}
-                    type="button"
-                    onClick={() => setUkuran(u)}
-                    className={`min-w-12 rounded-md border-2 px-4 py-2 text-sm font-bold transition ${
-                      u === ukuran
-                        ? "border-brand-orange bg-brand-orange text-white"
-                        : "border-brand-cream bg-white text-brand-black hover:border-brand-orange/60"
-                    }`}
-                  >
-                    {u}
-                  </button>
-                ))}
+            {ukuranArr.length > 0 && (
+              <div>
+                <p className="mb-2 text-sm font-bold text-brand-black">
+                  Pilih Ukuran :
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {ukuranArr.map((u) => (
+                    <button
+                      key={u}
+                      type="button"
+                      onClick={() => setUkuran(u)}
+                      className={`min-w-12 rounded-md border-2 px-4 py-2 text-sm font-bold transition ${
+                        u === ukuran
+                          ? "border-brand-orange bg-brand-orange text-white"
+                          : "border-brand-cream bg-white text-brand-black hover:border-brand-orange/60"
+                      }`}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">

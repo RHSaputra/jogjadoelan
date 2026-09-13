@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { ok, fail, handler } from "@/lib/api/response";
 import { requireAdmin } from "@/lib/auth-server";
 import { mapRefundToDTO } from "@/lib/api/refund-mapper";
+import { mutateProductStock } from "@/lib/server/stock-mutation";
 import pusher from "@/lib/pusher-server";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -10,12 +11,26 @@ type Ctx = { params: Promise<{ id: string }> };
 export const POST = handler(async (_req: Request, ctx: Ctx) => {
   await requireAdmin();
   const { id } = await ctx.params;
-  const r = await prisma.refund.findUnique({ where: { id } });
+  const r = await prisma.refund.findUnique({
+    where: { id },
+    include: {
+      order: { include: { orderitem: true } },
+    },
+  });
   if (!r) return fail(404, "Refund tidak ditemukan");
   if (r.status !== "DIKIRIM_BALIK") return fail(400, "Status tidak valid (harus DIKIRIM_BALIK)");
 
   const now = new Date();
   const updated = await prisma.$transaction(async (tx) => {
+    // Restok item ke inventaris jika ini adalah refund order reguler dengan orderitem
+    if (r.order?.orderitem) {
+      for (const item of r.order.orderitem) {
+        if (item.produkId) {
+          await mutateProductStock(tx, item.produkId, item.ukuran, item.warna, item.qty);
+        }
+      }
+    }
+
     const u = await tx.refund.update({
       where: { id },
       data: { status: "DITERIMA_ADMIN", adminReceivedAt: now },

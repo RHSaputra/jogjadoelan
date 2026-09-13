@@ -169,6 +169,8 @@ model customorder {
   customprogress     customprogress[]
   komplain           komplain[]
   payment            payment[]
+  refund             refund[]
+  tukar              tukar[]
 
   @@index([userId], map: "CustomOrder_userId_idx")
   @@index([status, createdAt], map: "CustomOrder_status_createdAt_idx")
@@ -503,7 +505,8 @@ model qrisconfig {
 model refund {
   id                     String        @id @default(cuid())
   komplainId             String        @unique(map: "Refund_komplainId_key")
-  orderId                String
+  orderId                String?
+  customOrderId          String?
   userId                 String
   status                 refund_status @default(MENUNGGU_REVIEW_ADMIN)
   namaBank               String
@@ -526,10 +529,12 @@ model refund {
   createdAt              DateTime      @default(now())
   updatedAt              DateTime      @default(now()) @updatedAt
   komplain               komplain      @relation(fields: [komplainId], references: [id], onDelete: Cascade, map: "Refund_komplainId_fkey")
-  order                  order         @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Refund_orderId_fkey")
+  order                  order?        @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Refund_orderId_fkey")
+  customorder            customorder?  @relation(fields: [customOrderId], references: [id], onDelete: Cascade, map: "Refund_customOrderId_fkey")
   user                   user          @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Refund_userId_fkey")
 
   @@index([orderId], map: "Refund_orderId_fkey")
+  @@index([customOrderId], map: "Refund_customOrderId_fkey")
   @@index([status], map: "Refund_status_idx")
   @@index([userId], map: "Refund_userId_idx")
   @@index([createdAt], map: "Refund_createdAt_idx")
@@ -544,7 +549,8 @@ model sitesetting {
 model tukar {
   id                  String       @id @default(cuid())
   komplainId          String       @unique(map: "Tukar_komplainId_key")
-  orderId             String
+  orderId             String?
+  customOrderId       String?
   userId              String
   productId           String?
   status              tukar_status @default(MENUNGGU_REVIEW_ADMIN)
@@ -573,11 +579,13 @@ model tukar {
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @default(now()) @updatedAt
   komplain            komplain     @relation(fields: [komplainId], references: [id], onDelete: Cascade, map: "Tukar_komplainId_fkey")
-  order               order        @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Tukar_orderId_fkey")
+  order               order?       @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "Tukar_orderId_fkey")
+  customorder         customorder? @relation(fields: [customOrderId], references: [id], onDelete: Cascade, map: "Tukar_customOrderId_fkey")
   produk              produk?      @relation(fields: [productId], references: [id], map: "Tukar_productId_fkey")
   user                user         @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Tukar_userId_fkey")
 
   @@index([orderId], map: "Tukar_orderId_fkey")
+  @@index([customOrderId], map: "Tukar_customOrderId_idx")
   @@index([productId], map: "Tukar_productId_fkey")
   @@index([status], map: "Tukar_status_idx")
   @@index([userId], map: "Tukar_userId_idx")
@@ -643,11 +651,12 @@ model verificationtoken {
   id        String    @id @default(cuid())
   userId    String
   email     String
-  token     String    @unique(map: "VerificationToken_token_key")
+  token     String
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
 
+  @@unique([userId, token], map: "VerificationToken_userId_token_key")
   @@index([email], map: "VerificationToken_email_idx")
   @@index([token], map: "VerificationToken_token_idx")
   @@index([userId], map: "VerificationToken_userId_idx")

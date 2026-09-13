@@ -55,7 +55,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   sendOrderEmail("order-refunded", {
     recipientEmail: r.user.email,
     recipientName: r.user.username,
-    orderId: r.orderId,
+    orderId: r.orderId ?? r.customOrderId ?? "",
   }).catch(err => console.error("[EMAIL] refund-approved order-refunded customer email failed:", err));
 
   return ok(mapRefundToDTO(updated));

@@ -60,7 +60,7 @@ export const GET = handler(async (req: Request) => {
     prisma.order.aggregate({
       where: {
         ...dateRange,
-        status: { in: ["SELESAI", "DIKIRIM", "DIPROSES", "MENUNGGU_KONFIRMASI"] },
+        status: { in: ["SELESAI", "DIKIRIM", "DIPROSES"] },
       },
       _sum: { total: true, ongkir: true, biayaPacking: true, diskon: true, subtotal: true },
     }),

@@ -12,7 +12,8 @@ export interface AlamatTujuanDTO {
 export interface TukarDTO {
   id: string;
   komplainId: string;
-  orderId: string;
+  orderId: string | null;
+  customOrderId?: string | null;
   userId: string;
   productId: string | null;
   status: string;
@@ -54,6 +55,7 @@ export function mapTukarToDTO(t: PrismaTukar): TukarDTO {
     id: t.id,
     komplainId: t.komplainId,
     orderId: t.orderId,
+    customOrderId: t.customOrderId,
     userId: t.userId,
     productId: t.productId,
     status: toLowerEnum(t.status),

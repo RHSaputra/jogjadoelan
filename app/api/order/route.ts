@@ -13,6 +13,7 @@ import {
 import { mutateProductStock } from "@/lib/server/stock-mutation";
 import { sendOrderEmail, sendAdminEmail } from "@/lib/email/send";
 import { pushAdminNotification } from "@/lib/admin-notification-server";
+import { getRates, BITESHIP_COURIERS } from "@/lib/biteship";
 import type { order_bankKey } from "@prisma/client";
 
 
@@ -161,7 +162,43 @@ export const POST = handler(async (req: Request) => {
     diskon = 0;
   }
 
-  const total = Math.max(0, subtotal + body.ongkir + body.biayaPacking - diskon);
+  // --- VERIFIKASI & REKALKULASI ONGKIR SERVER-SIDE ---
+  let finalOngkir = 0;
+  if (body.pengiriman === "ambil") {
+    finalOngkir = 0;
+  } else {
+    const isYogyakarta =
+      body.alamat.provinsi?.toLowerCase().includes("yogyakarta") ||
+      body.alamat.kota?.toLowerCase().includes("yogyakarta") ||
+      body.alamat.kota?.toLowerCase().includes("jogja") ||
+      body.alamat.kodePos?.startsWith("55");
+    const isFreeShippingVoucher =
+      body.voucher?.kode === "JOGJAFREE" ||
+      body.voucher?.judul?.toLowerCase().includes("ongkir");
+
+    if ((subtotal >= 500000 && isYogyakarta) || isFreeShippingVoucher) {
+      finalOngkir = 0;
+    } else {
+      try {
+        const totalQty = body.items.reduce((acc, item) => acc + item.qty, 0);
+        const rates = await getRates({
+          destinationPostalCode: body.alamat.kodePos,
+          couriers: Object.keys(BITESHIP_COURIERS),
+          items: [{ weight: 1000 * totalQty, quantity: 1, value: subtotal }],
+        });
+        if (rates && rates.length > 0) {
+          const matched = rates.find((r) => r.price === body.ongkir);
+          finalOngkir = matched ? matched.price : Math.min(...rates.map((r) => r.price));
+        } else {
+          finalOngkir = body.ongkir > 0 ? body.ongkir : 15000;
+        }
+      } catch {
+        finalOngkir = body.ongkir > 0 ? body.ongkir : 15000;
+      }
+    }
+  }
+
+  const total = Math.max(0, subtotal + finalOngkir + body.biayaPacking - diskon);
   const now = new Date();
   const expired = new Date(now.getTime() + ORDER_EXPIRY_MS);
   const orderId = generateOrderId("JD");
@@ -224,7 +261,7 @@ export const POST = handler(async (req: Request) => {
         metodeBayar: METODE_TO_UPPER[body.pembayaran.metode],
         bankKey: body.pembayaran.bank ? (body.pembayaran.bank.toUpperCase() as order_bankKey) : null,
         subtotal,
-        ongkir: body.ongkir,
+        ongkir: finalOngkir,
         biayaPacking: body.biayaPacking,
         diskon,
         total,

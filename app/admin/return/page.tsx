@@ -50,7 +50,7 @@ export default function AdminReturnPage() {
       arr = arr.filter(
         (r) =>
           r.id.toLowerCase().includes(s) ||
-          r.orderId.toLowerCase().includes(s) ||
+          (r.orderId ?? "").toLowerCase().includes(s) ||
           r.komplainId.toLowerCase().includes(s)
       );
     }

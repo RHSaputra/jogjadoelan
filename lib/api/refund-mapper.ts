@@ -4,7 +4,8 @@ import { toLowerEnum } from "./enum-mapper";
 export interface RefundDTO {
   id: string;
   komplainId: string;
-  orderId: string;
+  orderId: string | null;
+  customOrderId?: string | null;
   userId: string;
   status: string;
 
@@ -42,6 +43,7 @@ export function mapRefundToDTO(r: PrismaRefund): RefundDTO {
     id: r.id,
     komplainId: r.komplainId,
     orderId: r.orderId,
+    customOrderId: r.customOrderId,
     userId: r.userId,
     status: toLowerEnum(r.status),
 

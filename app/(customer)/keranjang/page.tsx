@@ -40,12 +40,6 @@ export default function KeranjangPage() {
   // Avoid extra setState-in-effect that triggers lint warnings.
   const mounted = true;
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.replace(`/login?next=${encodeURIComponent("/keranjang")}`);
-    }
-  }, [authLoading, isAuthenticated, router]);
-
   /* Selection state */
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
@@ -121,17 +115,26 @@ const handlePesan = () => {
     return;
   }
 
-    const payload = selectedItems
+  const payload = selectedItems
     .map(
       (it) =>
         `${it.produkId}:${encodeURIComponent(it.ukuran ?? "")}:${it.qty}`,
     )
     .join(",");
 
-  router.push(`/checkout?mode=cart&items=${payload}`);
+  const targetUrl = `/checkout?mode=cart&items=${payload}`;
+  if (!isAuthenticated) {
+    toast.info("Silakan login untuk merampungkan pesanan", {
+      description: "Anda akan diarahkan ke halaman login terlebih dahulu.",
+    });
+    router.push(`/login?next=${encodeURIComponent(targetUrl)}`);
+    return;
+  }
+
+  router.push(targetUrl);
 };
 
-   if (!mounted || authLoading || !isAuthenticated) {
+  if (!mounted || authLoading) {
     return <div className="min-h-screen bg-brand-cream-light" />;
   }
 

@@ -53,7 +53,8 @@ export const POST = handler(async (req: Request) => {
       data: {
         id: genRefundId(),
         komplainId: k.id,
-        orderId: k.orderId!,
+        orderId: k.orderId ?? null,
+        customOrderId: k.customOrderId ?? null,
         userId: u.id,
         status: "MENUNGGU_REVIEW_ADMIN",
         namaBank: body.namaBank,
@@ -81,7 +82,7 @@ export const POST = handler(async (req: Request) => {
   void sendOrderEmail("order-refunded", {
     recipientEmail: u.email,
     recipientName: u.username,
-    orderId: k.orderId!,
+    orderId: k.orderId ?? k.customOrderId ?? "",
   });
 
   // Notifikasi admin (non-blocking)
@@ -92,7 +93,7 @@ export const POST = handler(async (req: Request) => {
           sendAdminEmail("refund-request", {
             adminEmail: admin.email,
             adminName: admin.nama,
-            orderId: k.orderId!,
+            orderId: k.orderId ?? k.customOrderId ?? "",
             refundId: created.id,
             nominal: 0,
           }).catch(err => console.error(`[EMAIL] admin refund-request to ${admin.email} failed:`, err));

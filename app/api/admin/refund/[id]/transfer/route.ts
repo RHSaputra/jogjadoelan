@@ -71,7 +71,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
         sendOrderEmail("refund-completed", {
           recipientEmail: user.email,
           recipientName: user.username,
-          orderId: r.orderId!,
+          orderId: r.orderId ?? r.customOrderId ?? "",
           nominal: r.nominalRefund,
         }).catch(err => console.error("[EMAIL] refund-completed customer email failed:", err));
       }

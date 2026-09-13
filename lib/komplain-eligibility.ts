@@ -54,7 +54,10 @@ function barangDiterima(o: OrderForEligibility): boolean {
 function garansiOpen(o: OrderForEligibility, now: number): boolean {
   // Garansi hanya valid setelah ada bukti barang diterima (delivered/konfirmasi).
   // shippedAt TIDAK dipakai supaya garansi tidak menghitung saat barang masih di jalan.
-  const start = o.konfirmasiDiterimaAt || o.deliveredAt || null;
+  let start = o.konfirmasiDiterimaAt || o.deliveredAt || null;
+  if (!start && o.status === "selesai") {
+    start = (o.ekspedisi as { shippedAt?: string } | null)?.shippedAt || new Date(now).toISOString();
+  }
   if (!start) return false;
   const t = new Date(start).getTime();
   if (!Number.isFinite(t)) return false;

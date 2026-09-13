@@ -166,6 +166,9 @@ export const POST = handler(
         }
         case "mark-dikirim": {
           if (currentOrder.status !== "DIPROSES") throw new Error("Pesanan harus dalam status diproduksi terlebih dahulu");
+          if (currentOrder.paymentType === "DP" && (currentOrder.sisaAmount ?? 0) > 0) {
+            throw new Error("Tidak bisa dikirim: pelanggan belum melunasi sisa tagihan DP");
+          }
           nextStatus = "DIKIRIM";
           notifBody = `Custom order ${id} sudah dikirim.`;
           break;

@@ -1,5 +1,5 @@
 import { pushSystemChatLog } from "@/lib/chat-system-server";
-// Admin kirim varian BARU — deduct varian baru -1 (dengan guard stok)
+// Admin kirim varian BARU — deduct varian baru -1 (dengan guard stok) & restore varian lama +1
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ok, fail, handler } from "@/lib/api/response";
@@ -30,10 +30,15 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   const now = new Date();
   try {
     const updated = await prisma.$transaction(async (tx) => {
-      // Deduct varian BARU (-1) with guard
+      // 1. Deduct varian BARU (-1) dengan guard
       await mutateProductStock(tx, t.productId, t.ukuranBaru, t.warnaBaru, -1, {
         guardNegative: true,
       });
+
+      // 2. Restok varian LAMA (+1) yang sudah diterima admin
+      if (t.productId) {
+        await mutateProductStock(tx, t.productId, t.ukuranLama, t.warnaLama, +1);
+      }
 
       const u = await tx.tukar.update({
         where: { id },
@@ -59,7 +64,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
     sendOrderEmail("tukar-shipped", {
       recipientEmail: t.user.email,
       recipientName: t.user.username,
-      orderId: t.orderId,
+      orderId: t.orderId ?? "",
       komplainId: t.komplainId,
       kurir: body.adminKurirKirim,
       resi: body.adminNoResiKirim,

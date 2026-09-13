@@ -182,8 +182,21 @@ export default auth((req) => {
   const rateLimitResponse = applyApiRateLimit(req);
   if (rateLimitResponse) return rateLimitResponse;
 
-  // For API routes — add Cache-Control and return (no admin auth needed)
+  // For API routes — enforce admin authorization for /api/admin/* and add Cache-Control
   if (req.nextUrl.pathname.startsWith("/api/")) {
+    if (pathname.startsWith("/api/admin/")) {
+      const isPublicAdminApi =
+        pathname.startsWith("/api/admin/auth/forgot-password") ||
+        pathname.startsWith("/api/admin/auth/reset-password");
+
+      if (!isPublicAdminApi && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+        return NextResponse.json(
+          { error: { message: "Akses ditolak", code: "FORBIDDEN" } },
+          { status: 403, headers: { "Cache-Control": "private, no-store" } },
+        );
+      }
+    }
+
     const res = NextResponse.next();
     addCacheHeaders(req, res);
     return res;

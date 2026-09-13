@@ -53,7 +53,7 @@ export const POST = handler(async (req: Request, ctx: Ctx) => {
   sendOrderEmail("order-cancelled", {
     recipientEmail: r.user.email,
     recipientName: r.user.username,
-    orderId: r.orderId,
+    orderId: r.orderId ?? r.customOrderId ?? "",
     reason: `Refund ditolak: ${body.alasan}`,
   }).catch(err => console.error("[EMAIL] refund-rejected customer email failed:", err));
 

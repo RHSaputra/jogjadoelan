@@ -256,7 +256,7 @@ export async function dispatchNotification(
         case "otp": {
           const t = authTemplates.verifyEmailTemplate({
             recipientName,
-            verifyUrl: `${appUrl}/verify-otp?code=${payload.otp}`,
+            verifyUrl: `${appUrl}/api/auth/verify-email?token=${payload.otp}`,
           });
           subject = `Kode OTP Verifikasi Anda: ${payload.otp}`;
           html = t.html;

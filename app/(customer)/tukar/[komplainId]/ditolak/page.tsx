@@ -60,7 +60,7 @@ if (!tukar) {
   }
 
   const ajukanLagiHref = `/komplain/baru?orderId=${encodeURIComponent(
-    k?.orderId ?? tukar.orderId,
+    k?.orderId ?? tukar.orderId ?? "",
   )}`;
 
   return (

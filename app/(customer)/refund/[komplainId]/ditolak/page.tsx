@@ -60,7 +60,7 @@ export default function RefundDitolakPage() {
   }
 
   const ajukanLagiHref = `/komplain/baru?orderId=${encodeURIComponent(
-    k?.orderId ?? refund.orderId,
+    k?.orderId ?? refund.orderId ?? "",
   )}`;
 
   return (

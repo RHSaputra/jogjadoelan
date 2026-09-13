@@ -26,7 +26,7 @@ export interface ReturnRow {
   kind: "refund" | "tukar";
   id: string;
   komplainId: string;
-  orderId: string;
+  orderId: string | null;
   userId: string;
   status: string;
   createdAt: string;

@@ -12,6 +12,7 @@ import { mapKomplainToDTO } from "@/lib/api/komplain-mapper";
 import { toUpperEnum } from "@/lib/api/enum-mapper";
 import { sendKomplainEmail, sendAdminEmail } from "@/lib/email/send";
 import { pushAdminNotification } from "@/lib/admin-notification-server";
+import { getKomplainEligibility } from "@/lib/komplain-eligibility";
 
 export const GET = handler(async () => {
   const u = await requireCustomer();
@@ -55,10 +56,44 @@ export const POST = handler(async (req: Request) => {
 
   const order = await prisma.order.findFirst({
     where: { id: body.orderId, userId: u.id },
-    select: { id: true },
+    select: {
+      id: true,
+      status: true,
+      deliveredAt: true,
+      konfirmasiDiterimaAt: true,
+      ekspedisi: true,
+    },
   });
-  // FIX: Gunakan fail(404) bukan ok({ error }) agar frontend mendapat error proper
   if (!order) return fail(404, "Order tidak ditemukan", "NOT_FOUND");
+
+  const existingKomplains = await prisma.komplain.findMany({
+    where: { orderId: body.orderId, userId: u.id },
+    select: { status: true },
+  });
+
+  const formattedOrder = {
+    status: order.status.toLowerCase(),
+    deliveredAt: order.deliveredAt ? order.deliveredAt.toISOString() : undefined,
+    konfirmasiDiterimaAt: order.konfirmasiDiterimaAt ? order.konfirmasiDiterimaAt.toISOString() : undefined,
+    ekspedisi: order.ekspedisi,
+  };
+
+  const formattedKomplains = existingKomplains.map((k) => ({
+    status: k.status.toLowerCase(),
+  }));
+
+  const eligibility = getKomplainEligibility(
+    formattedOrder as Parameters<typeof getKomplainEligibility>[0],
+    formattedKomplains as Parameters<typeof getKomplainEligibility>[1]
+  );
+  const actionCheck = eligibility[body.tindakan];
+  if (!actionCheck.allowed) {
+    return fail(
+      400,
+      actionCheck.reason || "Tindakan komplain tidak diizinkan untuk order ini",
+      "ELIGIBILITY_BLOCKED"
+    );
+  }
 
   const created = await prisma.komplain.create({
     data: {

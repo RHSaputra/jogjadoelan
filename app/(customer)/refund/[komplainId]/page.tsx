@@ -77,7 +77,7 @@ export default function RefundSuksesPage() {
       return;
     }
     let c = false;
-    (async () => { const o = await getOrder(user.id, refund.orderId); if (!c) setOrder(o); })();
+    (async () => { const o = refund.orderId ? await getOrder(user.id, refund.orderId) : null; if (!c) setOrder(o); })();
     return () => { c = true; };
   }, [refund, user?.id]);
 

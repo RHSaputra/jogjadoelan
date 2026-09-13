@@ -72,6 +72,19 @@ export const POST = handler(
 
     if (b.kind === "dp") {
       if (!b.amount) return fail(422, "Nominal DP wajib diisi");
+      const minDp = Math.max(50000, Math.round(estimasiProduk * 0.3));
+      if (b.amount < minDp) {
+        return fail(
+          422,
+          `Nominal DP minimal Rp ${minDp.toLocaleString("id-ID")} (30% dari total estimasi)`
+        );
+      }
+      if (b.amount >= totalTagihan) {
+        return fail(
+          422,
+          `Nominal DP tidak boleh melebihi atau sama dengan total tagihan (Rp ${totalTagihan.toLocaleString("id-ID")}). Gunakan opsi Bayar Lunas.`
+        );
+      }
       nominal = b.amount;
       nextStatus = "MENUNGGU_VERIFIKASI_DP";
       paymentType = "DP";
@@ -93,7 +106,8 @@ export const POST = handler(
       };
     } else {
       const dpPaid = c.dpAmount ?? 0;
-      nominal = Math.max(0, totalTagihan - dpPaid);
+      const hargaTerkunci = c.hargaFinal ?? totalTagihan;
+      nominal = c.sisaAmount && c.sisaAmount > 0 ? c.sisaAmount : Math.max(0, hargaTerkunci - dpPaid);
       nextStatus = "MENUNGGU_VERIFIKASI_PELUNASAN";
       paymentType = "PELUNASAN";
       coDataPatch = { sisaAmount: 0 };

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return Response.json({ success: false, error: "Token tidak ditemukan" }, { status: 400 });
   }
 
-  const verificationToken = await prisma.verificationtoken.findUnique({
+  const verificationToken = await prisma.verificationtoken.findFirst({
     where: { token },
   });
 
